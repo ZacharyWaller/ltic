@@ -30,8 +30,11 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
     std::vector<double> cum_lambda(n_int + 1);
     std::vector<double> n_trans(n_int), cum_n_trans(n_int + 1), h(n_int);
 
-    double cond_trans, tol = 1e-5;
-    int it = 0, diff = 0;
+    double cond_trans, tol = 1e-8;
+    int it = 0;
+    bool conv = false;
+    double old_lk = R_NegInf;
+    double new_lk = 0;
     int it_em = 0, it_newt = 0, it_big = 0;
 
     // initiate cum_lambda
@@ -40,14 +43,12 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
     }
 
     // algorithm
-    while (it < 1000 && diff == 0) {
+    while (it < 1000 && (!conv)) {
 
       it_em = 0;
       it_newt = 0;
       // EM steps
-      while (it_em < 10 && it < 1000 && diff == 0) {
-
-          diff = 1;
+      while (it_em < 5 && it < 1000 && (!conv)) {
 
           // vector of derivative contributions per participant
           for (int i = 0; i < n_obs; i++) {
@@ -71,19 +72,24 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
               }
               cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
 
-              diff = diff * (abs(lambda_0[j] - lambda_1[j]) < tol);
-
               // reset for next iteration
               n_trans[j] = 0;
               lambda_1[j] = lambda_0[j];
 
           }
 
+        for (int i = 0; i < n_obs; i++) {
+            new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
+        }
+
+        conv = new_lk - old_lk < tol;
+        old_lk = new_lk;
+        new_lk = 0;
+
           it++;
           it_em++;
       }
 
-      diff = 1;
       // calculate derivatives
       // vector of derivative contributions per participant
       for (int i = 0; i < n_obs; i++) {
@@ -117,7 +123,7 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
               lambda_1[j] = 0;
           }
 
-          diff = diff * (abs(exp(-lambda_0[j]) - exp(-lambda_1[j])) < tol);
+          //diff = diff * (abs(exp(-lambda_0[j]) - exp(-lambda_1[j])) < tol);
 
           // reset for next iteration
           lambda_0[j] = lambda_1[j];
@@ -126,6 +132,14 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
           deriv_2[j] = 0;
 
       }
+
+        for (int i = 0; i < n_obs; i++) {
+            new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
+        }
+
+        conv = new_lk - old_lk < tol;
+        old_lk = new_lk;
+        new_lk = 0;
 
       it++;
       it_big++;
@@ -140,6 +154,7 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
     res["h"] = h;
     res["it"] = it;
     res["it_big"] = it_big;
-    res["diff"] = diff;
+    res["conv"] = conv;
+    res["like"] = old_lk;
     return res;
 }
