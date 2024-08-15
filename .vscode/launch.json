@@ -1,33 +1,34 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "(lldb) Launch",
-            "type": "lldb",
-            "request": "launch",
-            "program": "/Library/Frameworks/R.framework/Resources/bin/exec/R",
-            "args": [
-                "--vanilla",
-                "-e",
-                "source('tools/debug.R')"
-            ],
-            "env": {
-                "R_HOME": "/Library/Frameworks/R.framework/Resources"
-            },
-            "terminal": "console",
-            "stopOnEntry": false
-        },
-        {
-            "name": "(lldb) Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "enter program name, for example ${workspaceFolder}/a.out",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(lldb) Launch",
+      "type": "lldb",
+      "request": "launch",
+      "program": "/Library/Frameworks/R.framework/Resources/bin/exec/R",
+      "args": [
+        "--vanilla",
+        "-e",
+        "source('tools/debug.R')"
+      ],
+      "env": {
+        "R_HOME": "/Library/Frameworks/R.framework/Resources"
+      },
+      "terminal": "console",
+      "stopOnEntry": false
+    },
+    {
+      "name": "C/C++: clang build and debug active file",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${fileDirname}/${fileBasenameNoExtension}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "C/C++: clang build active file"
+    }
+  ]
 }
