@@ -10,11 +10,9 @@ using namespace Rcpp;
 
 // Algorithm for Newton-like algorithm for left-truncated interval censored data
 // TODO pass vectors by reference
-// TODO add EM algorithm
-// TODO check increase in likelihood
 // Pre-calculate contributions from right-censoring and left-truncation 
 // [[Rcpp::export]]
-List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector q, IntegerVector R0) {
+List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector R0) {
 
     int n_int = lambda.length();
     int n_obs = l.length();
