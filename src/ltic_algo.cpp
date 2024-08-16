@@ -13,7 +13,7 @@ using namespace Rcpp;
 // TODO pass vectors by reference
 // Pre-calculate contributions from right-censoring and left-truncation 
 // [[Rcpp::export]]
-List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r) {
+List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, NumericVector deriv_1_0) {
 
     int n_int = lambda.length();
     int n_obs = l.length();
@@ -23,7 +23,8 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r) {
     std::vector<double> lambda_1 = lambda_0;
     std::vector<double> cum_lambda(n_int + 1);
     std::vector<double> c(n_obs), deriv(n_obs);
-    std::vector<double> deriv_1(n_int), deriv_2(n_int);
+    std::vector<double> deriv_1 = Rcpp::as< std::vector<double> >(deriv_1_0);
+    std::vector<double> deriv_2(n_int);
     double tol = 1e-8;
     int it = 0;
     bool conv = false;
@@ -46,11 +47,9 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r) {
             deriv[i] = c[i] / (1 - c[i]);
 
             // add up contributions from each participant
-            for (int j = 0; j < right[i]; j++) {
+            for (int j = left[i]; j < right[i]; j++) {
 
-                if (j < l[i]) {
-                    deriv_1[j] -= 1;
-                } else if (j >= left[i] && j < right[i]) {
+                if (j >= left[i] && j < right[i]) {
                     deriv_1[j] += deriv[i];
                     deriv_2[j] -= (deriv[i] + deriv[i] * deriv[i]);
                 }
@@ -65,8 +64,6 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r) {
             if (lambda_1[j] < 0) {
                 lambda_1[j] = 0;
             }
-
-            //conv = conv * (abs(exp(-lambda_0[j]) - exp(-lambda_1[j])) < tol);
 
             // reset for next iteration
             lambda_0[j] = lambda_1[j];
@@ -139,7 +136,7 @@ List em_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Numeri
             cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
             h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
-            if (h[j] < 1) {
+            if (h[j] < 1 - tol) {
                 lambda_0[j] = - log(1 - h[j]);
             } else {
                 lambda_0[j] = 9999;
