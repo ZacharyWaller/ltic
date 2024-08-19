@@ -13,7 +13,8 @@ using namespace Rcpp;
 // TODO pass vectors by reference
 // Pre-calculate contributions from right-censoring and left-truncation 
 // [[Rcpp::export]]
-List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, NumericVector deriv_1_0) {
+List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
+NumericVector deriv_1_0) {
 
     int n_int = lambda.length();
     int n_obs = l.length();
@@ -24,6 +25,7 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Nu
     std::vector<double> cum_lambda(n_int + 1);
     std::vector<double> c(n_obs), deriv(n_obs);
     std::vector<double> deriv_1 = Rcpp::as< std::vector<double> >(deriv_1_0);
+    std::vector<double> deriv_1_init = Rcpp::as< std::vector<double> >(deriv_1_0);
     std::vector<double> deriv_2(n_int);
     double tol = 1e-8;
     int it = 0;
@@ -35,6 +37,7 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Nu
     for (int j = 1; j < n_int + 1; j++){
         cum_lambda[j] = cum_lambda[j - 1] + lambda_0[j - 1];
     }
+    cum_lambda[n_int] = R_PosInf;
 
     // algorithm
     while (it < 1000 && (!conv)) {
@@ -51,14 +54,14 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Nu
 
                 if (j >= left[i] && j < right[i]) {
                     deriv_1[j] += deriv[i];
-                    deriv_2[j] -= (deriv[i] + deriv[i] * deriv[i]);
+                    deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
                 }
 
             }
         }
 
         // newton step
-        for (int j = 0; j < n_int; j++) {
+        for (int j = 0; j < n_int - 1; j++) {
             lambda_1[j] = lambda_0[j] - deriv_1[j] / deriv_2[j];
 
             if (lambda_1[j] < 0) {
@@ -68,10 +71,11 @@ List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Nu
             // reset for next iteration
             lambda_0[j] = lambda_1[j];
             cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
-            deriv_1[j] = 0;
+            deriv_1[j] = deriv_1_init[j];
             deriv_2[j] = 0;
 
         }
+        cum_lambda[n_int] = R_PosInf;
 
         for (int i = 0; i < n_obs; i++) {
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
