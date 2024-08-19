@@ -12,7 +12,8 @@ using namespace Rcpp;
 // TODO pass vectors by reference
 // Pre-calculate contributions from right-censoring and left-truncation 
 // [[Rcpp::export]]
-List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector R0) {
+List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
+NumericVector deriv_1_0, IntegerVector R0) {
 
     int n_int = lambda.length();
     int n_obs = l.length();
@@ -24,16 +25,22 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
     std::vector<double> lambda_1 = lambda_0;
 
     std::vector<double> c(n_obs), deriv(n_obs);
-    std::vector<double> deriv_1(n_int), deriv_2(n_int);
+    std::vector<double> deriv_1 = Rcpp::as< std::vector<double> >(deriv_1_0);
+    std::vector<double> deriv_1_init = Rcpp::as< std::vector<double> >(deriv_1_0);
+    std::vector<double> deriv_2(n_int);
     std::vector<double> cum_lambda(n_int + 1);
     std::vector<double> n_trans(n_int), cum_n_trans(n_int + 1), h(n_int);
+    std::vector<double> ex_lambda_0(n_int);
+    std::vector<double> ex_lambda_1(n_int);
 
     double cond_trans, tol = 1e-8;
     int it = 0;
     bool conv = false;
+    bool inc_lik = false;
     double old_lk = R_NegInf;
     double new_lk = 0;
-    int it_em = 0, it_newt = 0, it_big = 0;
+    double alpha = 1;
+    int it_em = 0, it_newt = 0, it_big = 0, tries = 0;
 
     // initiate cum_lambda
     for (int j = 1; j < n_int + 1; j++){
@@ -88,6 +95,11 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
           it_em++;
       }
 
+        for (int j = 0; j < n_int; j++) {
+            ex_lambda_0[j] = log(lambda_0[j]);
+        }
+
+      // Newton method -------------
       // calculate derivatives
       // vector of derivative contributions per participant
       for (int i = 0; i < n_obs; i++) {
@@ -96,48 +108,56 @@ List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, 
           deriv[i] = c[i] / (1 - c[i]);
 
           // add up contributions from each participant
-          for (int j = 0; j < r[i]; j++) {
+          for (int j = l[i]; j < r[i]; j++) {
 
-              if (j < l[i]) {
-                  deriv_1[j] -= 1;
-              } else if (j >= l[i] && j < r[i]) {
+              if (j >= l[i] && j < r[i]) {
                   deriv_1[j] += deriv[i];
-                  deriv_2[j] -= (deriv[i] + deriv[i] * deriv[i]);
+                  deriv_2[j] += (1 - exp(lambda_0[j])) * deriv[i] - exp(lambda_0[j]) * deriv[i] * deriv[i];
               }
 
           }
       }
 
-      // newton step
-      for (int j = 0; j < n_int; j++) {
 
+      // half stepping
+      tries = 0;
+      while (tries < 3 && !inc_lik) {
+        alpha *= 0.5;
+
+        for (int j = 0; j < n_int; j++) {
+          // newton step
           if (deriv_2[j] < tol && deriv_2[j] > -tol) {
-            lambda_1[j] = lambda_0[j];
+            ex_lambda_1[j] = ex_lambda_0[j];
+          } else if (std::isnan(deriv_2[j])) {
+            ex_lambda_1[j] = ex_lambda_0[j];
           } else {
-            lambda_1[j] = lambda_0[j] - deriv_1[j] / deriv_2[j];
+            ex_lambda_1[j] = ex_lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
           }
 
-          if (lambda_1[j] < 0) {
-              lambda_1[j] = 0;
-          }
-
-          //diff = diff * (abs(exp(-lambda_0[j]) - exp(-lambda_1[j])) < tol);
-
-          // reset for next iteration
-          lambda_0[j] = lambda_1[j];
+          lambda_0[j] = exp(ex_lambda_1[j]);
           cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
-          deriv_1[j] = 0;
-          deriv_2[j] = 0;
-
-      }
-
+        }
         for (int i = 0; i < n_obs; i++) {
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
         }
 
-        conv = new_lk - old_lk < tol;
-        old_lk = new_lk;
-        new_lk = 0;
+        tries++;
+        inc_lik = new_lk > old_lk;
+      
+      }
+
+      // reset values
+      for (int j = 0; j < n_int; j++) {
+          // reset for next iteration
+          deriv_1[j] = deriv_1_init[j];
+          deriv_2[j] = deriv_1_init[j];
+
+      }
+
+      conv = new_lk - old_lk < tol;
+      old_lk = new_lk;
+      new_lk = 0;
+      inc_lik = false;
 
       it++;
       it_big++;
