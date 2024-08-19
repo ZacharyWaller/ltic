@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <iostream>
 using namespace Rcpp;
 
 // Need:
@@ -46,6 +47,8 @@ NumericVector deriv_1_0, IntegerVector R0) {
     for (int j = 1; j < n_int + 1; j++){
         cum_lambda[j] = cum_lambda[j - 1] + lambda_0[j - 1];
     }
+    cum_lambda[n_int] = R_PosInf;
+
 
     // algorithm
     while (it < 1000 && (!conv)) {
@@ -88,16 +91,15 @@ NumericVector deriv_1_0, IntegerVector R0) {
         }
 
         conv = new_lk - old_lk < tol;
+        if (new_lk < old_lk) {
+          std::cout << "No need to store this string"; 
+        }
         old_lk = new_lk;
         new_lk = 0;
 
           it++;
           it_em++;
       }
-
-        for (int j = 0; j < n_int; j++) {
-            ex_lambda_0[j] = log(lambda_0[j]);
-        }
 
       // Newton method -------------
       // calculate derivatives
@@ -112,7 +114,7 @@ NumericVector deriv_1_0, IntegerVector R0) {
 
               if (j >= l[i] && j < r[i]) {
                   deriv_1[j] += deriv[i];
-                  deriv_2[j] += (1 - exp(lambda_0[j])) * deriv[i] - exp(lambda_0[j]) * deriv[i] * deriv[i];
+                  deriv_2[j] += - deriv[i] - deriv[i] * deriv[i];
               }
 
           }
@@ -121,28 +123,36 @@ NumericVector deriv_1_0, IntegerVector R0) {
 
       // half stepping
       tries = 0;
+      new_lk = 0;
       while (tries < 3 && !inc_lik) {
+        new_lk = 0;
         alpha *= 0.5;
 
-        for (int j = 0; j < n_int; j++) {
+        for (int j = 0; j < n_int - 1; j++) {
           // newton step
-          if (deriv_2[j] < tol && deriv_2[j] > -tol) {
-            ex_lambda_1[j] = ex_lambda_0[j];
-          } else if (std::isnan(deriv_2[j])) {
-            ex_lambda_1[j] = ex_lambda_0[j];
-          } else {
-            ex_lambda_1[j] = ex_lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+          // if (deriv_2[j] < tol && deriv_2[j] > -tol) {
+          //   lambda_1[j] = lambda_0[j];
+          // } else if (std::isnan(deriv_2[j])) {
+          //   lambda_1[j] = lambda_0[j];
+          // } else {
+          lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+          //}
+
+          if (lambda_1[j] < 0) {
+            lambda_1[j] = 0;
           }
 
-          lambda_0[j] = exp(ex_lambda_1[j]);
-          cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
+          cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
         }
+        cum_lambda[n_int] = R_PosInf;
+
         for (int i = 0; i < n_obs; i++) {
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
         }
 
         tries++;
         inc_lik = new_lk > old_lk;
+
       
       }
 
@@ -151,6 +161,7 @@ NumericVector deriv_1_0, IntegerVector R0) {
           // reset for next iteration
           deriv_1[j] = deriv_1_init[j];
           deriv_2[j] = deriv_1_init[j];
+          lambda_0[j] = lambda_1[j];
 
       }
 
