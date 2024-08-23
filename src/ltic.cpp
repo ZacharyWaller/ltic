@@ -24,7 +24,8 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVecto
 void ltic::run() {
   double old_like = R_NegInf;
   while (it < 1000 && !conv) {
-    //em_algo();
+    em_algo();
+    convert_lambda();
     newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
@@ -90,6 +91,7 @@ void ltic::newton_algo() {
         deriv_1[j] = 0;
         deriv_2[j] = 0;
         lambda_0[j] = lambda_1[j];
+        exp_lambda_0[j] = exp_lambda_1[j];
     }
 }
 
@@ -102,10 +104,11 @@ void ltic::calc_derivs() {
         // add up contributions from each participant
         for (int j = 0; j < right[i]; j++) {
               if (j < left[i]) {
-                  deriv_1[j] -= 1;
+                  deriv_1[j] -= lambda_0[j];
+                  deriv_2[j] -= lambda_0[j];
               } else {
-                  deriv_1[j] += deriv[i];
-                  deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
+                  deriv_1[j] += lambda_0[j] * deriv[i];
+                  deriv_2[j] += (1 - lambda_0[j]) * lambda_0[j] * deriv[i] - lambda_0[j]* lambda_0[j] * deriv[i] * deriv[i];
               }
         }
     }
@@ -121,12 +124,9 @@ void ltic::half_steps() {
       alpha *= 0.5;
 
       for (int j = 0; j < n_int - 1; j++) {
-        lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+        exp_lambda_1[j] = exp_lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
 
-        if (lambda_1[j] < 0) {
-          lambda_1[j] = 0;
-        }
-
+        lambda_1[j] = exp(exp_lambda_1[j]);
         cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
       }
       cum_lambda[n_int] = R_PosInf;
@@ -136,4 +136,12 @@ void ltic::half_steps() {
       tries++;
       inc_lik = new_lk > llike;
     }
+}
+
+void ltic::convert_lambda() {
+
+  for (int j = 0; j < n_int; j++) {
+    exp_lambda_0[j] = log(lambda_0[j]);
+  }
+
 }

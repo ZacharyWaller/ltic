@@ -13,6 +13,7 @@ class ltic{
     std::vector<double> deriv_1;
     std::vector<double> deriv_2;
     std::vector<double> cum_lambda;
+    std::vector<double> exp_lambda_0, exp_lambda_1;
     std::vector<double> n_trans, cum_n_trans, h;
 
     double tol = 1e-8;
@@ -24,6 +25,7 @@ class ltic{
 
     double calc_like();
     void em_algo();
+    void convert_lambda();
     void newton_algo();
     void calc_derivs();
     void half_steps();
@@ -48,11 +50,17 @@ class ltic{
       cum_lambda.resize(n_int + 1);
       n_trans.resize(n_int);
       cum_n_trans.resize(n_int + 1);
+      exp_lambda_0.resize(n_int);
+      exp_lambda_1.resize(n_int);
       h.resize(n_int);
+
+      for (int j = 0; j < n_int; j++){
+          exp_lambda_0[j] = log(lambda_0[j]);
+      }
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
-          cum_lambda[j] = cum_lambda[j - 1] + lambda_0[j - 1];
+          cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
       }
       cum_lambda[n_int] = R_PosInf;
       lambda_0[n_int - 1] = R_PosInf;
