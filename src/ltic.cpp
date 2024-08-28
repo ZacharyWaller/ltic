@@ -5,9 +5,9 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector R0) {
+List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0) {
 
-    ltic ltic_ob(lambda, l, r, R0);
+    ltic ltic_ob(lambda, l, r, t, R0);
 
     ltic_ob.run();
 
@@ -25,7 +25,7 @@ void ltic::run() {
   double old_like = R_NegInf;
   while (it < 1000 && !conv) {
     em_algo();
-    convert_lambda();
+    //convert_lambda();
     newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
@@ -38,7 +38,7 @@ void ltic::run() {
 double ltic::calc_like() {
   double like = 0;
   for (int i = 0; i < n_obs; i++) {
-      like += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
+      like += log( exp(-cum_lambda[left[i]] + cum_lambda[trun[i]]) - exp(-cum_lambda[right[i]] + cum_lambda[trun[i]]));
   }
 
   return like;
@@ -49,7 +49,7 @@ void ltic::em_algo() {
 
     int it_em = 0;
     double cond_trans = 0;
-    while (it_em < 10) {
+    while (it_em < 5) {
       // vector of derivative contributions per participant
       for (int i = 0; i < n_obs; i++) {
           c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
@@ -66,15 +66,15 @@ void ltic::em_algo() {
           h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
           if (h[j] < 1) {
-              lambda_0[j] = - log(1 - h[j]);
+              lambda_1[j] = - log(1 - h[j]);
           } else {
-              lambda_0[j] = 9999;
+              lambda_1[j] = 9999;
           }
-          cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
+          cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
 
           // reset for next iteration
           n_trans[j] = 0;
-          lambda_1[j] = lambda_0[j];
+          lambda_0[j] = lambda_1[j];
       }
       it_em++;
     }
@@ -91,7 +91,6 @@ void ltic::newton_algo() {
         deriv_1[j] = 0;
         deriv_2[j] = 0;
         lambda_0[j] = lambda_1[j];
-        exp_lambda_0[j] = exp_lambda_1[j];
     }
 }
 
@@ -102,13 +101,12 @@ void ltic::calc_derivs() {
         deriv[i] = c[i] / (1 - c[i]);
 
         // add up contributions from each participant
-        for (int j = 0; j < right[i]; j++) {
+        for (int j = trun[i]; j < right[i]; j++) {
               if (j < left[i]) {
-                  deriv_1[j] -= lambda_0[j];
-                  deriv_2[j] -= lambda_0[j];
+                  deriv_1[j] -= 1;
               } else {
-                  deriv_1[j] += lambda_0[j] * deriv[i];
-                  deriv_2[j] += (1 - lambda_0[j]) * lambda_0[j] * deriv[i] - lambda_0[j]* lambda_0[j] * deriv[i] * deriv[i];
+                  deriv_1[j] += deriv[i];
+                  deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
               }
         }
     }
@@ -118,15 +116,27 @@ void ltic::calc_derivs() {
 void ltic::half_steps() {
     int tries = 0;
     bool inc_lik = false;
-    double new_lk = calc_like();
+    double temp_lk = calc_like();
+    double new_lk;
     double alpha = 2;
-    while (tries < 3 && !inc_lik) {
+    while (tries < 5 && !inc_lik) {
       alpha *= 0.5;
 
       for (int j = 0; j < n_int - 1; j++) {
-        exp_lambda_1[j] = exp_lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
 
-        lambda_1[j] = exp(exp_lambda_1[j]);
+        if (deriv_2[j] < tol && deriv_2[j] > -tol) {
+          lambda_1[j] = lambda_0[j];
+        //} else if (std::isnan(deriv_2[j])) {
+          lambda_1[j] = lambda_0[j];
+        } else {
+          lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+        }
+        //lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+
+        if (lambda_1[j] < 0) {
+          lambda_1[j] = 0;
+        }
+
         cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
       }
       cum_lambda[n_int] = R_PosInf;
@@ -134,14 +144,6 @@ void ltic::half_steps() {
       new_lk = calc_like();
 
       tries++;
-      inc_lik = new_lk > llike;
+      inc_lik = new_lk > temp_lk;
     }
-}
-
-void ltic::convert_lambda() {
-
-  for (int j = 0; j < n_int; j++) {
-    exp_lambda_0[j] = log(lambda_0[j]);
-  }
-
 }

@@ -5,6 +5,7 @@ class ltic{
 
     std::vector<int> left;
     std::vector<int> right;
+    std::vector<int> trun;
     std::vector<double> lambda_0;
     std::vector<double> lambda_1;
     std::vector<double> risk_0;
@@ -33,12 +34,13 @@ class ltic{
 
 
     // constructor
-    ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, Rcpp::IntegerVector r, Rcpp::IntegerVector R0) {
+    ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, Rcpp::IntegerVector r, Rcpp::IntegerVector t, Rcpp::IntegerVector R0) {
       n_int = lambda.length();
       n_obs = l.length();
 
       left = Rcpp::as< std::vector<int> >(l);
       right = Rcpp::as< std::vector<int> >(r);
+      trun = Rcpp::as<std::vector<int> >(t);
       lambda_0 = Rcpp::as< std::vector<double> >(lambda);
       lambda_1 = lambda_0;
       risk_0 = Rcpp::as< std::vector<double> >(R0);
@@ -54,9 +56,9 @@ class ltic{
       exp_lambda_1.resize(n_int);
       h.resize(n_int);
 
-      for (int j = 0; j < n_int; j++){
-          exp_lambda_0[j] = log(lambda_0[j]);
-      }
+      // for (int j = 0; j < n_int; j++){
+      //     exp_lambda_0[j] = log(lambda_0[j]);
+      // }
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
