@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include <iostream>
 #include "ltic.h"
+#include "monotone.h"
 using namespace Rcpp;
 
 
@@ -14,7 +15,7 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVecto
     List out;
     out["llike"] = ltic_ob.llike;
     out["it"] = ltic_ob.it;
-    out["lambda"] = ltic_ob.lambda_0;
+    out["lambda"] = ltic_ob.cum_lambda;
 
     return out;
 
@@ -25,7 +26,6 @@ void ltic::run() {
   double old_like = R_NegInf;
   while (it < 1000 && !conv) {
     em_algo();
-    //convert_lambda();
     newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
@@ -49,7 +49,7 @@ void ltic::em_algo() {
 
     int it_em = 0;
     double cond_trans = 0;
-    while (it_em < 5) {
+    while (it_em < 10) {
       // vector of derivative contributions per participant
       for (int i = 0; i < n_obs; i++) {
           c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
@@ -90,25 +90,26 @@ void ltic::newton_algo() {
         // reset for next iteration
         deriv_1[j] = 0;
         deriv_2[j] = 0;
-        lambda_0[j] = lambda_1[j];
+        lambda_0[j] = cum_lambda[j + 1] - cum_lambda[j];
     }
 }
 
 void ltic::calc_derivs() {
+    double surv_diff;
+    double derv_right, derv_left;
+
     for (int i = 0; i < n_obs; i++) {
-        c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
 
-        deriv[i] = c[i] / (1 - c[i]);
+      derv_left = exp(-cum_lambda[left[i]] + cum_lambda[trun[i]]);
+      derv_right = exp(-cum_lambda[right[i]] + cum_lambda[trun[i]]);
+      surv_diff = derv_left - derv_right;
 
-        // add up contributions from each participant
-        for (int j = trun[i]; j < right[i]; j++) {
-              if (j < left[i]) {
-                  deriv_1[j] -= 1;
-              } else {
-                  deriv_1[j] += deriv[i];
-                  deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
-              }
-        }
+      deriv_1[trun[i]] += 1;
+      deriv_1[left[i]] += -derv_left / surv_diff;
+      deriv_1[right[i]] += derv_right / surv_diff;
+
+      deriv_2[left[i]] += derv_left / surv_diff - derv_left * derv_left / (surv_diff * surv_diff);
+      deriv_2[right[i]] += -derv_right / surv_diff - derv_right * derv_right / (surv_diff * surv_diff);
     }
 }
 
@@ -118,32 +119,40 @@ void ltic::half_steps() {
     bool inc_lik = false;
     double temp_lk = calc_like();
     double new_lk;
-    double alpha = 2;
+    double alpha = -1;
+    
+    int n_weight = n_int - 1;
+    double w[n_weight];
+    double y[n_weight];
+    double diff[n_weight];
+
+    for (int j = 0; j < n_weight; j++) {
+      w[j] = deriv_2[j + 1] / 2;
+      y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+    }
+
+    
+    monotoneC(&n_weight, y, w);
+
+    for(int j = 0; j < n_weight; j++){
+        diff[j] = y[j] - cum_lambda[j + 1];
+    }
+
+    for (int j = 0; j < n_weight; j++) {
+      cum_lambda[j + 1] = cum_lambda[j + 1] + diff[j];
+    }
+    new_lk = calc_like();
+    inc_lik = new_lk >= temp_lk;
+
     while (tries < 5 && !inc_lik) {
       alpha *= 0.5;
 
-      for (int j = 0; j < n_int - 1; j++) {
-
-        if (deriv_2[j] < tol && deriv_2[j] > -tol) {
-          lambda_1[j] = lambda_0[j];
-        //} else if (std::isnan(deriv_2[j])) {
-          lambda_1[j] = lambda_0[j];
-        } else {
-          lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
-        }
-        //lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
-
-        if (lambda_1[j] < 0) {
-          lambda_1[j] = 0;
-        }
-
-        cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
+      for (int j = 0; j < n_weight; j++) {
+        cum_lambda[j] = cum_lambda[j] + alpha * diff[j];
       }
-      cum_lambda[n_int] = R_PosInf;
-
       new_lk = calc_like();
 
       tries++;
-      inc_lik = new_lk > temp_lk;
+      inc_lik = new_lk >= temp_lk;
     }
 }
