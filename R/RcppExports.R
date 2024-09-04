@@ -29,7 +29,23 @@ calc_like <- function(lambda, left, right) {
     .Call('_ltic_calc_like', PACKAGE = 'ltic', lambda, left, right)
 }
 
+calc_like_lambda <- function(lambda, left, right) {
+    .Call('_ltic_calc_like_lambda', PACKAGE = 'ltic', lambda, left, right)
+}
+
 calc_derivs <- function(lambda, left, right) {
     .Call('_ltic_calc_derivs', PACKAGE = 'ltic', lambda, left, right)
+}
+
+shen_r <- function(s, l, r, t) {
+    .Call('_ltic_shen_r', PACKAGE = 'ltic', s, l, r, t)
+}
+
+turnbull_r <- function(s, l, r, t) {
+    .Call('_ltic_turnbull_r', PACKAGE = 'ltic', s, l, r, t)
+}
+
+yu_r <- function(s, l, r, t) {
+    .Call('_ltic_yu_r', PACKAGE = 'ltic', s, l, r, t)
 }
 

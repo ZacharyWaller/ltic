@@ -16,9 +16,9 @@
 #'
 #' @examples
 ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
-                              max_iterations = 1e5, remove_rcens = TRUE,
-                              open_L = TRUE, open_T = FALSE, constr = NULL,
-                              method = c("comb", "em", "newton", "both")) {
+                    max_iterations = 1e5, remove_rcens = TRUE,
+                    open_L = TRUE, open_T = FALSE, constr = NULL,
+                    method = c("comb", "em", "newton", "both", "turnbull", "shen", "yu")) {
 
 
   method <- match.arg(method)
@@ -94,7 +94,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   lambda <- rep(1 / ncol(alpha), ncol(alpha))
   lambda[is.nan(lambda)] <- 9999
 
-  cat("\n Starting algorithm...")
+  cat("\n Starting algorithm...\n")
   # Call maximisation algorithm ------------------------------------------------
   if (method == "newton") {
     res <- newton_algorithm(lambda, l, r, deriv_1_0)
@@ -104,6 +104,15 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     res <- combined_algorithm(lambda, l, r, deriv_1_0, y_0)
   } else if (method == "both") {
     res <- ltic_r(lambda, l, r, t, y_0)
+  } else if (method == "turnbull") {
+    s <- rep(1 / ncol(alpha), ncol(alpha))
+    res <- turnbull_r(s, l, r, t)
+  } else if (method == "shen") {
+    s <- rep(1 / ncol(alpha), ncol(alpha))
+    res <- shen_r(s, l, r, t)
+  } else if (method == "yu") {
+    s <- rep(1 / ncol(alpha), ncol(alpha))
+    res <- yu_r(s, l, r, t)
   }
 
   list(
