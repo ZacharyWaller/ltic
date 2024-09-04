@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <iostream>
 using namespace Rcpp;
 
 // Need:
@@ -24,20 +25,23 @@ NumericVector deriv_1_0) {
     std::vector<double> lambda_1 = lambda_0;
     std::vector<double> cum_lambda(n_int + 1);
     std::vector<double> c(n_obs), deriv(n_obs);
-    std::vector<double> deriv_1 = Rcpp::as< std::vector<double> >(deriv_1_0);
+    std::vector<double> deriv_1(n_int); //= Rcpp::as< std::vector<double> >(deriv_1_0);
     std::vector<double> deriv_1_init = Rcpp::as< std::vector<double> >(deriv_1_0);
     std::vector<double> deriv_2(n_int);
     double tol = 1e-8;
-    int it = 0;
+    int it = 0, tries = 0;;
     bool conv = false;
+    bool inc_lik = false;
     double old_lk = R_NegInf;
-    double new_lk = 0;
+    double new_lk = 0, alpha = 1;
 
     // initiate cum_lambda
     for (int j = 1; j < n_int + 1; j++){
         cum_lambda[j] = cum_lambda[j - 1] + lambda_0[j - 1];
     }
     cum_lambda[n_int] = R_PosInf;
+    lambda_0[n_int - 1] = R_PosInf;
+    lambda_1[n_int - 1] = R_PosInf;
 
     // algorithm
     while (it < 1000 && (!conv)) {
@@ -50,30 +54,39 @@ NumericVector deriv_1_0) {
             deriv[i] = c[i] / (1 - c[i]);
 
             // add up contributions from each participant
-            for (int j = left[i]; j < right[i]; j++) {
-
-                if (j >= left[i] && j < right[i]) {
+            for (int j = 0; j < right[i]; j++) {
+                if (j < left[i]) {
+                    deriv_1[j] -= 1;
+                } else {
                     deriv_1[j] += deriv[i];
                     deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
                 }
-
             }
         }
 
-        // newton step
+      // half stepping
+      tries = 0;
+      new_lk = 0;
+      alpha = 2;
+      while (tries < 3 && !inc_lik) {
+        new_lk = 0;
+        alpha *= 0.5;
+
         for (int j = 0; j < n_int - 1; j++) {
-            lambda_1[j] = lambda_0[j] - deriv_1[j] / deriv_2[j];
+          // newton step
+          // if (deriv_2[j] < tol && deriv_2[j] > -tol) {
+          //   lambda_1[j] = lambda_0[j];
+          // } else if (std::isnan(deriv_2[j])) {
+          //   lambda_1[j] = lambda_0[j];
+          // } else {
+          lambda_1[j] = lambda_0[j] - alpha * deriv_1[j] / deriv_2[j];
+          //}
 
-            if (lambda_1[j] < 0) {
-                lambda_1[j] = 0;
-            }
+          if (lambda_1[j] < 0) {
+            lambda_1[j] = 0;
+          }
 
-            // reset for next iteration
-            lambda_0[j] = lambda_1[j];
-            cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
-            deriv_1[j] = deriv_1_init[j];
-            deriv_2[j] = 0;
-
+          cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
         }
         cum_lambda[n_int] = R_PosInf;
 
@@ -81,11 +94,24 @@ NumericVector deriv_1_0) {
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
         }
 
-        conv = new_lk - old_lk < tol;
-        old_lk = new_lk;
-        new_lk = 0;
+        tries++;
+        inc_lik = new_lk > old_lk;
+      }
 
-        it++;
+      // reset values
+      for (int j = 0; j < n_int; j++) {
+          // reset for next iteration
+          deriv_1[j] = 0;
+          deriv_2[j] = 0;
+          lambda_0[j] = lambda_1[j];
+
+      }
+
+      conv = new_lk - old_lk < tol && new_lk - old_lk > -tol;
+      old_lk = new_lk;
+      new_lk = 0;
+      inc_lik = false;
+      it++;
 
     }
     
@@ -140,14 +166,17 @@ List em_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Numeri
             cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
             h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
-            if (h[j] < 1 - tol) {
+            if (h[j] < 0) {
+                lambda_0[j] = 0;
+            } else if (h[j] < 1 - tol) {
                 lambda_0[j] = - log(1 - h[j]);
+                if (isnan(lambda_0[j])) {
+                    std::cout << "help!!" << std::endl;
+                }
             } else {
                 lambda_0[j] = 9999;
             }
             cum_lambda[j + 1] = cum_lambda[j] + lambda_0[j];
-
-            //conv = conv * (abs(lambda_0[j] - lambda_1[j]) < tol);
 
             // reset for next iteration
             n_trans[j] = 0;
@@ -159,7 +188,10 @@ List em_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, Numeri
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
         }
 
-        conv = new_lk - old_lk < tol;
+        conv = new_lk - old_lk < tol && new_lk - old_lk > -tol;
+        if (new_lk < old_lk) {
+            std::cout << "lower likelihood!" << std::endl;
+        }
         old_lk = new_lk;
         new_lk = 0;
 

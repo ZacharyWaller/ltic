@@ -48,6 +48,8 @@ NumericVector deriv_1_0, IntegerVector R0) {
         cum_lambda[j] = cum_lambda[j - 1] + lambda_0[j - 1];
     }
     cum_lambda[n_int] = R_PosInf;
+    lambda_0[n_int - 1] = R_PosInf;
+    lambda_1[n_int - 1] = R_PosInf;
 
 
     // algorithm
@@ -56,7 +58,7 @@ NumericVector deriv_1_0, IntegerVector R0) {
       it_em = 0;
       it_newt = 0;
       // EM steps
-      while (it_em < 5 && it < 1000 && (!conv)) {
+      while (it_em < 1 && it < 1000 && (!conv)) {
 
           // vector of derivative contributions per participant
           for (int i = 0; i < n_obs; i++) {
@@ -69,7 +71,7 @@ NumericVector deriv_1_0, IntegerVector R0) {
           }
 
           // calculate new h values
-          for (int j = 0; j < n_int; j++) {
+          for (int j = 0; j < n_int - 1; j++) {
               cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
               h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
@@ -90,9 +92,9 @@ NumericVector deriv_1_0, IntegerVector R0) {
             new_lk += log( exp(-cum_lambda[left[i]]) - exp(-cum_lambda[right[i]]));
         }
 
-        conv = new_lk - old_lk < tol;
+        conv = new_lk - old_lk < tol && new_lk - old_lk > -tol;
         if (new_lk < old_lk) {
-          std::cout << "No need to store this string"; 
+          std::cout << "No need to store this string" << std::endl;; 
         }
         old_lk = new_lk;
         new_lk = 0;
@@ -101,6 +103,11 @@ NumericVector deriv_1_0, IntegerVector R0) {
           it_em++;
       }
 
+      if (conv) {
+        std::cout << "converged in EM step" << std::endl;
+      }
+
+      while (it_newt < 1 && it < 1000 && (!conv)) {
       // Newton method -------------
       // calculate derivatives
       // vector of derivative contributions per participant
@@ -110,13 +117,13 @@ NumericVector deriv_1_0, IntegerVector R0) {
           deriv[i] = c[i] / (1 - c[i]);
 
           // add up contributions from each participant
-          for (int j = l[i]; j < r[i]; j++) {
-
-              if (j >= l[i] && j < r[i]) {
-                  deriv_1[j] += deriv[i];
-                  deriv_2[j] += - deriv[i] - deriv[i] * deriv[i];
-              }
-
+          for (int j = 0; j < right[i]; j++) {
+                if (j < left[i]) {
+                    deriv_1[j] -= 1;
+                } else {
+                    deriv_1[j] += deriv[i];
+                    deriv_2[j] += -deriv[i] - deriv[i] * deriv[i];
+                }
           }
       }
 
@@ -124,6 +131,7 @@ NumericVector deriv_1_0, IntegerVector R0) {
       // half stepping
       tries = 0;
       new_lk = 0;
+      alpha = 2;
       while (tries < 3 && !inc_lik) {
         new_lk = 0;
         alpha *= 0.5;
@@ -152,25 +160,25 @@ NumericVector deriv_1_0, IntegerVector R0) {
 
         tries++;
         inc_lik = new_lk > old_lk;
-
-      
       }
 
       // reset values
       for (int j = 0; j < n_int; j++) {
           // reset for next iteration
-          deriv_1[j] = deriv_1_init[j];
-          deriv_2[j] = deriv_1_init[j];
+          deriv_1[j] = 0;
+          deriv_2[j] = 0;
           lambda_0[j] = lambda_1[j];
 
       }
 
-      conv = new_lk - old_lk < tol;
+      conv = new_lk - old_lk < tol && new_lk - old_lk > -tol;
       old_lk = new_lk;
       new_lk = 0;
       inc_lik = false;
-
       it++;
+      it_newt++;
+      }
+
       it_big++;
 
     }
