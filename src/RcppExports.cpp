@@ -10,34 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// pava
-std::vector<double> pava(Rcpp::NumericVector y, Rcpp::NumericVector w, int np);
-RcppExport SEXP _ltic_pava(SEXP ySEXP, SEXP wSEXP, SEXP npSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type y(ySEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type w(wSEXP);
-    Rcpp::traits::input_parameter< int >::type np(npSEXP);
-    rcpp_result_gen = Rcpp::wrap(pava(y, w, np));
-    return rcpp_result_gen;
-END_RCPP
-}
-// combined_algorithm
-List combined_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, NumericVector deriv_1_0, IntegerVector R0);
-RcppExport SEXP _ltic_combined_algorithm(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP deriv_1_0SEXP, SEXP R0SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type deriv_1_0(deriv_1_0SEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
-    rcpp_result_gen = Rcpp::wrap(combined_algorithm(lambda, l, r, deriv_1_0, R0));
-    return rcpp_result_gen;
-END_RCPP
-}
 // ltic_r
 List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0);
 RcppExport SEXP _ltic_ltic_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP) {
@@ -50,34 +22,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
     rcpp_result_gen = Rcpp::wrap(ltic_r(lambda, l, r, t, R0));
-    return rcpp_result_gen;
-END_RCPP
-}
-// newton_algorithm
-List newton_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, NumericVector deriv_1_0);
-RcppExport SEXP _ltic_newton_algorithm(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP deriv_1_0SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type deriv_1_0(deriv_1_0SEXP);
-    rcpp_result_gen = Rcpp::wrap(newton_algorithm(lambda, l, r, deriv_1_0));
-    return rcpp_result_gen;
-END_RCPP
-}
-// em_algorithm
-List em_algorithm(NumericVector lambda, IntegerVector l, IntegerVector r, NumericVector R0);
-RcppExport SEXP _ltic_em_algorithm(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP R0SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type R0(R0SEXP);
-    rcpp_result_gen = Rcpp::wrap(em_algorithm(lambda, l, r, R0));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -106,6 +50,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calc_like_lambda
+NumericVector calc_like_lambda(NumericVector lambda, IntegerVector left, IntegerVector right);
+RcppExport SEXP _ltic_calc_like_lambda(SEXP lambdaSEXP, SEXP leftSEXP, SEXP rightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type left(leftSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type right(rightSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_like_lambda(lambda, left, right));
+    return rcpp_result_gen;
+END_RCPP
+}
 // calc_derivs
 List calc_derivs(NumericVector lambda, IntegerVector left, IntegerVector right);
 RcppExport SEXP _ltic_calc_derivs(SEXP lambdaSEXP, SEXP leftSEXP, SEXP rightSEXP) {
@@ -119,16 +76,58 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// shen_r
+List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
+RcppExport SEXP _ltic_shen_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    rcpp_result_gen = Rcpp::wrap(shen_r(s, l, r, t));
+    return rcpp_result_gen;
+END_RCPP
+}
+// turnbull_r
+List turnbull_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
+RcppExport SEXP _ltic_turnbull_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    rcpp_result_gen = Rcpp::wrap(turnbull_r(s, l, r, t));
+    return rcpp_result_gen;
+END_RCPP
+}
+// yu_r
+List yu_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
+RcppExport SEXP _ltic_yu_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    rcpp_result_gen = Rcpp::wrap(yu_r(s, l, r, t));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ltic_pava", (DL_FUNC) &_ltic_pava, 3},
-    {"_ltic_combined_algorithm", (DL_FUNC) &_ltic_combined_algorithm, 5},
     {"_ltic_ltic_r", (DL_FUNC) &_ltic_ltic_r, 5},
-    {"_ltic_newton_algorithm", (DL_FUNC) &_ltic_newton_algorithm, 4},
-    {"_ltic_em_algorithm", (DL_FUNC) &_ltic_em_algorithm, 4},
     {"_ltic_monotone", (DL_FUNC) &_ltic_monotone, 2},
     {"_ltic_calc_like", (DL_FUNC) &_ltic_calc_like, 3},
+    {"_ltic_calc_like_lambda", (DL_FUNC) &_ltic_calc_like_lambda, 3},
     {"_ltic_calc_derivs", (DL_FUNC) &_ltic_calc_derivs, 3},
+    {"_ltic_shen_r", (DL_FUNC) &_ltic_shen_r, 4},
+    {"_ltic_turnbull_r", (DL_FUNC) &_ltic_turnbull_r, 4},
+    {"_ltic_yu_r", (DL_FUNC) &_ltic_yu_r, 4},
     {NULL, NULL, 0}
 };
 
