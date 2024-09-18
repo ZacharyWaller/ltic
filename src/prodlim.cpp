@@ -17,7 +17,7 @@ List prodlim_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     List out;
     out["llike"] = prodlim_ob.llike;
     out["it"] = prodlim_ob.it;
-    out["lambda"] = prodlim_ob.cum_lambda;
+    out["lambda"] = prodlim_ob.h;
 
     return out;
 
@@ -31,10 +31,10 @@ void prodlim::run() {
     double cond_trans = 0;
     // vector of derivative contributions per participant
     for (int i = 0; i < n_obs; i++) {
-        p_obs[i] = S[right[i]] - S[left[i]];
+        p_obs[i] = S[left[i]] - S[right[i]];
 
         for (int j = left[i]; j < right[i]; j++) {
-            cond_trans = h[j] S[j] / p_obs[i];
+            cond_trans = h[j] * S[j] / p_obs[i];
             n_trans[j] += cond_trans;
         }
     }
@@ -44,16 +44,13 @@ void prodlim::run() {
         cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
         h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
-        if (h[j] < 1) {
-            lambda_1[j] = - log(1 - h[j]);
-        } else {
-            lambda_1[j] = 20;
+        if (h[j] >= 1) {
+          h[j] = 1 - 1e-10;
         }
-        cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
 
         // reset for next iteration
+        S[j + 1] = S[j] * (1 - h[j]);
         n_trans[j] = 0;
-        lambda_0[j] = lambda_1[j];
     }
 
     llike = calc_like();
@@ -67,7 +64,7 @@ void prodlim::run() {
 double prodlim::calc_like() {
   double like = 0;
   for (int i = 0; i < n_obs_full; i++) {
-      like += log(p_obs[left_full[i]] - p_obs[right_full[i]]) - 
+      like += log(S[left_full[i]] - S[right_full[i]]) - 
         log(S[trun_full[i]]);
   }
 

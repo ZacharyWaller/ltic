@@ -16,6 +16,8 @@ class prodlim{
 
     std::vector<double> c;
     std::vector<double> cum_lambda;
+    std::vector<double> S;
+    std::vector<double> p_obs;
     std::vector<double> n_trans, cum_n_trans, h;
 
     double tol = 1e-8;
@@ -42,24 +44,26 @@ class prodlim{
       right = Rcpp::as< std::vector<int> >(r);
       trun = Rcpp::as<std::vector<int> >(t);
       lambda_0 = Rcpp::as< std::vector<double> >(lambda);
+      h = Rcpp::as< std::vector<double> >(lambda);
       lambda_1 = lambda_0;
       risk_0 = Rcpp::as< std::vector<double> >(R0);
       left_full = Rcpp::as< std::vector<int> >(l_full);
       right_full = Rcpp::as< std::vector<int> >(r_full);
       trun_full = Rcpp::as<std::vector<int> >(t_full);
 
-      c.resize(n_obs);
+      p_obs.resize(n_obs);
       cum_lambda.resize(n_int + 1);
       n_trans.resize(n_int);
       cum_n_trans.resize(n_int + 1);
-      h.resize(n_int);
+      //h.resize(n_int, 1/n_int);
+      S.resize(n_int + 1, 1);
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
-          cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
+          S[j] = S[j - 1] * (1 - h[j - 1]);
       }
-      cum_lambda[n_int] = R_PosInf;
-      lambda_0[n_int - 1] = R_PosInf;
+      S[n_int] = 0;
+      h[n_int - 1] = 1;
       lambda_1[n_int - 1] = R_PosInf;
 
     };
