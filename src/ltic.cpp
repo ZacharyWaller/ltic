@@ -6,9 +6,11 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0) {
+List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, 
+            IntegerVector t, IntegerVector R0,  IntegerVector l_full, 
+                IntegerVector r_full, IntegerVector t_full) {
 
-    ltic ltic_ob(lambda, l, r, t, R0);
+    ltic ltic_ob(lambda, l, r, t, R0, l_full, r_full, t_full);
 
     ltic_ob.run();
 
@@ -24,7 +26,7 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVecto
 // outer loop
 void ltic::run() {
   double old_like = R_NegInf;
-  while (it < 1000 && !conv) {
+  while (it < 100000 && !conv) {
     em_algo();
     newton_algo();
     llike = calc_like();
@@ -37,8 +39,9 @@ void ltic::run() {
 // calculate likelihood
 double ltic::calc_like() {
   double like = 0;
-  for (int i = 0; i < n_obs; i++) {
-      like += log( exp(-cum_lambda[left[i]] + cum_lambda[trun[i]]) - exp(-cum_lambda[right[i]] + cum_lambda[trun[i]]));
+  for (int i = 0; i < n_obs_full; i++) {
+      like += log( exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]) - 
+        exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]));
   }
 
   return like;
@@ -55,8 +58,7 @@ void ltic::em_algo() {
           c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
 
           for (int j = left[i]; j < right[i]; j++) {
-              cond_trans = (1 - exp(-lambda_0[j])) * exp(- (cum_lambda[j] - cum_lambda[left[i]])) / (1 - c[i]);
-              n_trans[j] += cond_trans;
+              n_trans[j] += (1 - exp(-lambda_0[j])) * exp(- (cum_lambda[j] - cum_lambda[left[i]])) / (1 - c[i]);
           }
       }
 
@@ -98,18 +100,18 @@ void ltic::calc_derivs() {
     double surv_diff;
     double derv_right, derv_left;
 
-    for (int i = 0; i < n_obs; i++) {
+    for (int i = 0; i < n_obs_full; i++) {
 
-      derv_left = exp(-cum_lambda[left[i]] + cum_lambda[trun[i]]);
-      derv_right = exp(-cum_lambda[right[i]] + cum_lambda[trun[i]]);
+      derv_left = exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]);
+      derv_right = exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]);
       surv_diff = derv_left - derv_right;
 
-      deriv_1[trun[i]] += 1;
-      deriv_1[left[i]] += -derv_left / surv_diff;
-      deriv_1[right[i]] += derv_right / surv_diff;
+      deriv_1[trun_full[i]] += 1;
+      deriv_1[left_full[i]] += -derv_left / surv_diff;
+      deriv_1[right_full[i]] += derv_right / surv_diff;
 
-      deriv_2[left[i]] += derv_left / surv_diff - derv_left * derv_left / (surv_diff * surv_diff);
-      deriv_2[right[i]] += -derv_right / surv_diff - derv_right * derv_right / (surv_diff * surv_diff);
+      deriv_2[left_full[i]] += derv_left / surv_diff - derv_left * derv_left / (surv_diff * surv_diff);
+      deriv_2[right_full[i]] += -derv_right / surv_diff - derv_right * derv_right / (surv_diff * surv_diff);
     }
 }
 

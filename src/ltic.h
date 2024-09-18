@@ -2,6 +2,7 @@ class ltic{
   public:
     int n_int;
     int n_obs;
+    int n_obs_full;
 
     std::vector<int> left;
     std::vector<int> right;
@@ -9,6 +10,9 @@ class ltic{
     std::vector<double> lambda_0;
     std::vector<double> lambda_1;
     std::vector<double> risk_0;
+    std::vector<int> left_full;
+    std::vector<int> right_full;
+    std::vector<int> trun_full;
 
     std::vector<double> c, deriv;
     std::vector<double> deriv_1;
@@ -26,7 +30,6 @@ class ltic{
 
     double calc_like();
     void em_algo();
-    void convert_lambda();
     void newton_algo();
     void calc_derivs();
     void half_steps();
@@ -34,9 +37,14 @@ class ltic{
 
 
     // constructor
-    ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, Rcpp::IntegerVector r, Rcpp::IntegerVector t, Rcpp::IntegerVector R0) {
+    ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, 
+         Rcpp::IntegerVector r, Rcpp::IntegerVector t,
+         Rcpp::IntegerVector R0, Rcpp::IntegerVector l_full, 
+         Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full) {
+
       n_int = lambda.length();
       n_obs = l.length();
+      n_obs_full = l_full.length();
 
       left = Rcpp::as< std::vector<int> >(l);
       right = Rcpp::as< std::vector<int> >(r);
@@ -44,6 +52,9 @@ class ltic{
       lambda_0 = Rcpp::as< std::vector<double> >(lambda);
       lambda_1 = lambda_0;
       risk_0 = Rcpp::as< std::vector<double> >(R0);
+      left_full = Rcpp::as< std::vector<int> >(l_full);
+      right_full = Rcpp::as< std::vector<int> >(r_full);
+      trun_full = Rcpp::as<std::vector<int> >(t_full);
 
       c.resize(n_obs);
       deriv.resize(n_obs);
@@ -55,10 +66,6 @@ class ltic{
       exp_lambda_0.resize(n_int);
       exp_lambda_1.resize(n_int);
       h.resize(n_int);
-
-      // for (int j = 0; j < n_int; j++){
-      //     exp_lambda_0[j] = log(lambda_0[j]);
-      // }
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
