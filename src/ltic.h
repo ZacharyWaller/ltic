@@ -21,6 +21,14 @@ class ltic{
     std::vector<double> exp_lambda_0, exp_lambda_1;
     std::vector<double> n_trans, cum_n_trans, h;
 
+    class invert_data{
+      public:
+        std::vector<int> in;
+        std::vector<int> out;
+    };
+
+    std::vector<invert_data> lr_inv;
+
     double tol = 1e-8;
     int it = 0;
     bool conv = false;
@@ -74,6 +82,38 @@ class ltic{
       cum_lambda[n_int] = R_PosInf;
       lambda_0[n_int - 1] = R_PosInf;
       lambda_1[n_int - 1] = R_PosInf;
+
+      // invert data
+      lr_inv.resize(n_int + 1);
+      std::vector<int> left_sizes(n_int);
+      std::vector<int> right_sizes(n_int);
+
+      // find sizes
+      for (int i = 0; i < n_obs; i++) {
+        left_sizes[left[i]]++;
+        right_sizes[right[i]]++;
+      }
+
+      // make data_inv correct size
+      for (int j = 0; j < n_int + 1; j++) {
+        lr_inv[j].in.resize(left_sizes[j]);
+        lr_inv[j].out.resize(right_sizes[j]);
+      }
+
+      int curr_l, curr_r;
+      int curr_j_l, curr_j_r;
+      // transpose data
+      for (int i = 0; i < n_obs; i++) {
+        curr_l = left[i];
+        curr_r = right[i];
+        curr_j_l = left_sizes[curr_l] - 1;
+        curr_j_r = right_sizes[curr_r] - 1;
+        lr_inv[curr_l].in[curr_j_l] = i;
+        lr_inv[curr_r].out[curr_j_r] = i;
+
+        left_sizes[curr_l]--;
+        right_sizes[curr_r]--;
+      }
 
     };
 
