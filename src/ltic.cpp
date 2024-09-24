@@ -8,9 +8,9 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, 
             IntegerVector t, IntegerVector R0,  IntegerVector l_full, 
-                IntegerVector r_full, IntegerVector t_full) {
+                IntegerVector r_full, IntegerVector t_full, double tol) {
 
-    ltic ltic_ob(lambda, l, r, t, R0, l_full, r_full, t_full);
+    ltic ltic_ob(lambda, l, r, t, R0, l_full, r_full, t_full, tol);
 
     ltic_ob.run();
 
@@ -28,7 +28,9 @@ void ltic::run() {
   double old_like = R_NegInf;
   while (it < 100000 && !conv) {
     em_algo();
+    convert_to_haz();
     newton_algo();
+    convert_to_surv();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
     old_like = llike;
@@ -54,33 +56,83 @@ void ltic::em_algo() {
     double cond_trans = 0;
     while (it_em < 10) {
       // vector of derivative contributions per participant
-      for (int i = 0; i < n_obs; i++) {
-          c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
-
-          for (int j = left[i]; j < right[i]; j++) {
-              n_trans[j] += (1 - exp(-lambda_0[j])) * exp(- (cum_lambda[j] - cum_lambda[left[i]])) / (1 - c[i]);
-          }
-      }
+      calc_weight_sums();
 
       // calculate new h values
       for (int j = 0; j < n_int - 1; j++) {
-          cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
-          h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
+        cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
+        h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
-          if (h[j] < 1) {
-              lambda_1[j] = - log(1 - h[j]);
-          } else {
-              lambda_1[j] = 9999;
-          }
-          cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
+        if (h[j] >= 1) {
+          h[j] = 1 - 1e-5;
+        }
 
-          // reset for next iteration
-          n_trans[j] = 0;
-          lambda_0[j] = lambda_1[j];
+        surv[j + 1] = surv[j] * (1 - h[j]);
+
+        // reset for next iteration
+        n_trans[j] = 0;
+        lambda_0[j] = lambda_1[j];
+        w_sum[j] = 0;
       }
       it_em++;
     }
 }
+
+void ltic::calc_weight_sums() {
+
+  int l_size, r_size;
+
+  // first interval
+  int size_0 = lr_inv[0].in.size();
+  int curr;
+  for (int i = 0; i < size_0; i++) {
+    curr = lr_inv[0].in[i];
+    w_sum[0] = w_sum[0] + (1 / (surv[left[curr]] - surv[right[curr]]));
+  }
+
+
+  // loop through the rest
+  for (int j = 1; j < n_int; j++) {
+
+    l_size = lr_inv[j].in.size();
+    r_size = lr_inv[j].out.size();
+    w_sum[j] = w_sum[j - 1];
+
+    // in
+    for (int i = 0; i < l_size; i++) {
+      curr = lr_inv[j].in[i];
+      w_sum[j] = w_sum[j] + (1. / (surv[left[curr]] - surv[right[curr]]));
+    }
+
+    // out
+    for (int i = 0; i < r_size; i++) {
+      curr = lr_inv[j].out[i];
+      w_sum[j] = w_sum[j] - (1. / (surv[left[curr]] - surv[right[curr]]));
+    }
+  }
+
+  for (int j = 0; j < n_int; j++){
+    n_trans[j] = surv[j] * h[j] * w_sum[j];
+  }
+
+}
+
+void ltic::convert_to_haz() {
+  for (int j = 1; j < n_int; j++) {
+    cum_lambda[j] = -log(surv[j]);
+    if (cum_lambda[j] + 0.0 == 0.0) {
+      cum_lambda[j] = +0.0;
+    }
+  }
+}
+
+void ltic::convert_to_surv() {
+  for (int j = 0; j < n_int; j++) {
+    surv[j + 1] = exp(-cum_lambda[j + 1]);
+    h[j] = 1 - surv[j + 1] / surv[j];
+  }
+}
+
 
 void ltic::newton_algo() {
 
@@ -129,11 +181,17 @@ void ltic::half_steps() {
     double diff[n_weight];
 
     for (int j = 0; j < n_weight; j++) {
-      w[j] = deriv_2[j + 1] / 2;
-      y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+      if (deriv_2[j + 1] >= -1e-9) {
+        y[j] = cum_lambda[j + 1];
+        w[j] = 0.;
+      } else {
+        y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+        w[j] = deriv_2[j + 1] / 2;
+      }
+      if (y[j] < 0) y[j] = 0;
     }
 
-    
+    /* PAVA algorithm */
     monotoneC(&n_weight, y, w);
 
     for(int j = 0; j < n_weight; j++){
@@ -143,6 +201,8 @@ void ltic::half_steps() {
     for (int j = 0; j < n_weight; j++) {
       cum_lambda[j + 1] = cum_lambda[j + 1] + diff[j];
     }
+
+    /* Half stepping */
     new_lk = calc_like();
     inc_lik = new_lk >= temp_lk;
 

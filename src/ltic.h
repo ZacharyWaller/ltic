@@ -18,8 +18,9 @@ class ltic{
     std::vector<double> deriv_1;
     std::vector<double> deriv_2;
     std::vector<double> cum_lambda;
+    std::vector<double>  surv;
     std::vector<double> exp_lambda_0, exp_lambda_1;
-    std::vector<double> n_trans, cum_n_trans, h;
+    std::vector<double> n_trans, cum_n_trans, h, w_sum;
 
     class invert_data{
       public:
@@ -29,7 +30,7 @@ class ltic{
 
     std::vector<invert_data> lr_inv;
 
-    double tol = 1e-8;
+    double tol;
     int it = 0;
     bool conv = false;
     bool inc_lik = false;
@@ -38,6 +39,9 @@ class ltic{
 
     double calc_like();
     void em_algo();
+    void calc_weight_sums();
+    void convert_to_haz();
+    void convert_to_surv();
     void newton_algo();
     void calc_derivs();
     void half_steps();
@@ -48,8 +52,9 @@ class ltic{
     ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, 
          Rcpp::IntegerVector r, Rcpp::IntegerVector t,
          Rcpp::IntegerVector R0, Rcpp::IntegerVector l_full, 
-         Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full) {
+         Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full, double tol) {
 
+      tol = 1e-8;
       n_int = lambda.length();
       n_obs = l.length();
       n_obs_full = l_full.length();
@@ -59,6 +64,7 @@ class ltic{
       trun = Rcpp::as<std::vector<int> >(t);
       lambda_0 = Rcpp::as< std::vector<double> >(lambda);
       lambda_1 = lambda_0;
+      h = Rcpp::as<std::vector<double> > (lambda);
       risk_0 = Rcpp::as< std::vector<double> >(R0);
       left_full = Rcpp::as< std::vector<int> >(l_full);
       right_full = Rcpp::as< std::vector<int> >(r_full);
@@ -69,13 +75,14 @@ class ltic{
       deriv_1.resize(n_int);
       deriv_2.resize(n_int);
       cum_lambda.resize(n_int + 1);
+      surv.resize(n_int + 1, 1);
       n_trans.resize(n_int);
       cum_n_trans.resize(n_int + 1);
       exp_lambda_0.resize(n_int);
       exp_lambda_1.resize(n_int);
-      h.resize(n_int);
+      w_sum.resize(n_int);
 
-      // initiate cum_lambda
+      /* Initiate Cumulative Hazards */
       for (int j = 1; j < n_int + 1; j++){
           cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
       }
@@ -83,10 +90,18 @@ class ltic{
       lambda_0[n_int - 1] = R_PosInf;
       lambda_1[n_int - 1] = R_PosInf;
 
-      // invert data
+      /* Initiate Survival function */
+      for (int j = 1; j < n_int + 1; j++){
+          surv[j] = surv[j - 1] * (1 - h[j - 1]);
+      }
+
+      surv[n_int] = 0;
+      h[n_int - 1] = 1;
+
+      /* Invert Data */
       lr_inv.resize(n_int + 1);
-      std::vector<int> left_sizes(n_int);
-      std::vector<int> right_sizes(n_int);
+      std::vector<int> left_sizes(n_int + 1);
+      std::vector<int> right_sizes(n_int + 1);
 
       // find sizes
       for (int i = 0; i < n_obs; i++) {
