@@ -52,9 +52,9 @@ class ltic{
     ltic(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, 
          Rcpp::IntegerVector r, Rcpp::IntegerVector t,
          Rcpp::IntegerVector R0, Rcpp::IntegerVector l_full, 
-         Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full, double tol) {
+         Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full, double toler) {
 
-      tol = 1e-8;
+      tol = toler;
       n_int = lambda.length();
       n_obs = l.length();
       n_obs_full = l_full.length();
@@ -82,14 +82,6 @@ class ltic{
       exp_lambda_1.resize(n_int);
       w_sum.resize(n_int);
 
-      /* Initiate Cumulative Hazards */
-      for (int j = 1; j < n_int + 1; j++){
-          cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
-      }
-      cum_lambda[n_int] = R_PosInf;
-      lambda_0[n_int - 1] = R_PosInf;
-      lambda_1[n_int - 1] = R_PosInf;
-
       /* Initiate Survival function */
       for (int j = 1; j < n_int + 1; j++){
           surv[j] = surv[j - 1] * (1 - h[j - 1]);
@@ -97,6 +89,13 @@ class ltic{
 
       surv[n_int] = 0;
       h[n_int - 1] = 1;
+
+      /* Initiate Cumulative Hazards */
+      // for (int j = 1; j < n_int + 1; j++){
+      //     cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
+      // }
+      cum_lambda[0] = R_NegInf;
+      cum_lambda[n_int] = R_PosInf;
 
       /* Invert Data */
       lr_inv.resize(n_int + 1);
