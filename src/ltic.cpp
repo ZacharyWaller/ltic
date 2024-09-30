@@ -19,6 +19,7 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["it"] = ltic_ob.it;
     out["lambda"] = ltic_ob.cum_lambda;
     out["tol"] = ltic_ob.tol;
+    out["conv"] = ltic_ob.calc_conv();
 
     return out;
 
@@ -42,19 +43,27 @@ void ltic::run() {
 // calculate likelihood
 double ltic::calc_like() {
   double like = 0;
-  double exp_l, exp_r, exp_t;
   for (int i = 0; i < n_obs_full; i++) {
-    // like += log(surv[left_full[i]] - surv[right_full[i]]) - 
-    //   log(surv[trun_full[i]]);
-    exp_l = exp(cum_lambda[left_full[i]]);
-    exp_r = exp(cum_lambda[right_full[i]]);
-    exp_t = exp(cum_lambda[trun_full[i]]);
-
-    like += log(exp(-exp_l + exp_t) - exp(-exp_r + exp_t));
+      like += log( exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]) - 
+        exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]));
   }
 
   return like;
 }
+
+// calculate convergence 
+std::vector<double> ltic::calc_conv() {
+  for (int i = 0; i < n_obs_full; i++) {
+    for (int j = trun_full[i]; j < n_obs; j++) {
+      deriv_1[j] -= 1 / (surv[trun_full[i]]);
+      if (j >= left_full[i] && j < right_full[i]) {
+        deriv_1[j] += 1 / (surv[left_full[i]] - surv[right_full[i]]);
+      }
+    }
+  }
+  return deriv_1;
+}
+
 
 // EM algorithm
 void ltic::em_algo() {
@@ -71,7 +80,7 @@ void ltic::em_algo() {
         h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
         if (h[j] >= 1) {
-          h[j] = 1 - 1e-5;
+          h[j] = 1 - 1e-10;
         }
 
         surv[j + 1] = surv[j] * (1 - h[j]);
@@ -93,7 +102,7 @@ void ltic::calc_weight_sums() {
   int curr;
   for (int i = 0; i < size_0; i++) {
     curr = lr_inv[0].in[i];
-    w_sum[0] = w_sum[0] + (1 / (surv[left[curr]] - surv[right[curr]]));
+    w_sum[0] = w_sum[0] + (1. / (surv[left[curr]] - surv[right[curr]]));
   }
 
 
@@ -125,14 +134,17 @@ void ltic::calc_weight_sums() {
 
 void ltic::convert_to_haz() {
   for (int j = 1; j < n_int; j++) {
-    cum_lambda[j] = log(-log(surv[j]));
+    cum_lambda[j] = -log(surv[j]);
+    if (cum_lambda[j] + 0.0 == 0.0) {
+      cum_lambda[j] = +0.0;
+    }
   }
 }
 
 void ltic::convert_to_surv() {
   for (int j = 0; j < n_int; j++) {
-    surv[j + 1] = exp(-exp(cum_lambda[j + 1]));
-    h[j] = 1 - surv[j + 1] / surv[j];
+    surv[j + 1] = exp(-cum_lambda[j + 1]);
+    h[j] = 1 - exp(-cum_lambda[j + 1] + cum_lambda[j]);
   }
 }
 
@@ -152,26 +164,20 @@ void ltic::newton_algo() {
 
 void ltic::calc_derivs() {
     double surv_diff;
-    double exp_l, exp_r, exp_t;
     double derv_right, derv_left;
 
     for (int i = 0; i < n_obs_full; i++) {
 
-      exp_l = exp(cum_lambda[left_full[i]]);
-      derv_left = exp_l * exp(-exp_l);
-      exp_r = exp(cum_lambda[right_full[i]]);
-      derv_right = exp_r * exp(-exp_r);
-      surv_diff = exp(-exp_l) - exp(-exp_r);
+      derv_left = exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]);
+      derv_right = exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]);
+      surv_diff = derv_left - derv_right;
 
-      exp_t = exp(cum_lambda[trun_full[i]]);
-
-      deriv_1[trun_full[i]] += exp_t;
+      deriv_1[trun_full[i]] += 1;
       deriv_1[left_full[i]] += -derv_left / surv_diff;
       deriv_1[right_full[i]] += derv_right / surv_diff;
 
-      deriv_2[trun_full[i]] += exp_t;
-      deriv_2[left_full[i]] += -(1 - exp_l) * derv_left / surv_diff - derv_left * derv_left / (surv_diff * surv_diff);
-      deriv_2[right_full[i]] += (1 - exp_r) * derv_right / surv_diff - derv_right * derv_right / (surv_diff * surv_diff);
+      deriv_2[left_full[i]] += derv_left / surv_diff - derv_left * derv_left / (surv_diff * surv_diff);
+      deriv_2[right_full[i]] += -derv_right / surv_diff - derv_right * derv_right / (surv_diff * surv_diff);
     }
 }
 
@@ -189,13 +195,22 @@ void ltic::half_steps() {
     double diff[n_weight];
 
     for (int j = 0; j < n_weight; j++) {
-      y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
-      w[j] = deriv_2[j + 1] / 2;
-      //w[j] = 1. / 2.;
+      if (deriv_2[j + 1] >= 0.) deriv_2[j + 1] = -1e-9;
+      //   y[j] = cum_lambda[j + 1];
+      //   w[j] = 1e9;
+      // } else {
+        y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+        w[j] = deriv_2[j + 1] / 2;
+      //}
+      //if (y[j] < 0) y[j] = 0;
     }
 
     /* PAVA algorithm */
     monotoneC(&n_weight, y, w);
+
+    for (int j = 0; j < n_weight; j++) {
+      if (y[j] < 0) y[j] = 1e-9;
+    }
 
     for(int j = 0; j < n_weight; j++){
         diff[j] = y[j] - cum_lambda[j + 1];

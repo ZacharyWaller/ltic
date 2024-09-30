@@ -18,7 +18,7 @@ class ltic{
     std::vector<double> deriv_1;
     std::vector<double> deriv_2;
     std::vector<double> cum_lambda;
-    std::vector<double>  surv;
+    std::vector<double> surv;
     std::vector<double> exp_lambda_0, exp_lambda_1;
     std::vector<double> n_trans, cum_n_trans, h, w_sum;
 
@@ -38,6 +38,7 @@ class ltic{
     int it_newt = 0, it_big = 0, tries = 0;
 
     double calc_like();
+    std::vector<double> calc_conv();
     void em_algo();
     void calc_weight_sums();
     void convert_to_haz();
@@ -94,7 +95,7 @@ class ltic{
       // for (int j = 1; j < n_int + 1; j++){
       //     cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
       // }
-      cum_lambda[0] = R_NegInf;
+      cum_lambda[0] = 0;
       cum_lambda[n_int] = R_PosInf;
 
       /* Invert Data */
