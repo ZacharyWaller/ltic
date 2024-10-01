@@ -5,9 +5,10 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t) {
+List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t,
+            double toler, int max_it) {
 
-    shen shen_ob(s, l, r, t);
+    shen shen_ob(s, l, r, t, toler, max_it);
 
     shen_ob.run();
 
@@ -23,7 +24,7 @@ List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t) 
 // outer loop
 void shen::run() {
   double old_like = R_NegInf;
-  while (it < 1e5 && !conv) {
+  while (it < maxit && !conv) {
 
       // calculate new M values
       calc_weight_sums();

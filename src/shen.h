@@ -21,7 +21,8 @@ class shen{
 
     std::vector<invert_data> lr_inv;
 
-    double tol = 1e-8;
+    double tol;
+    int maxit;
     int it = 0;
     double denom = 0;
     bool conv = false;
@@ -35,7 +36,11 @@ class shen{
 
 
     // constructor
-    shen(Rcpp::NumericVector s, Rcpp::IntegerVector l, Rcpp::IntegerVector r, Rcpp::IntegerVector t) {
+    shen(Rcpp::NumericVector s, Rcpp::IntegerVector l, Rcpp::IntegerVector r, 
+         Rcpp::IntegerVector t, double toler, int max_it) {
+
+      maxit = max_it;
+      tol = toler;
       n_int = s.length();
       n_obs = l.length();
 

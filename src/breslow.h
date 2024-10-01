@@ -1,4 +1,4 @@
-class prodlim{
+class breslow{
   public:
     int n_int;
     int n_obs;
@@ -16,9 +16,16 @@ class prodlim{
 
     std::vector<double> c;
     std::vector<double> cum_lambda;
-    std::vector<double> surv;
-    std::vector<double> p_obs;
-    std::vector<double> n_trans, cum_n_trans, h, w_sum;
+    std::vector<double> w_sum;
+
+
+    double tol;
+    int maxit;
+    int it = 0;
+    bool conv = false;
+    bool inc_lik = false;
+    double llike = R_NegInf;
+    int it_newt = 0, it_big = 0, tries = 0;
 
     class invert_data{
       public:
@@ -28,27 +35,19 @@ class prodlim{
 
     std::vector<invert_data> lr_inv;
 
-    double tol;
-    int maxit;
-    int it = 0;
-    bool conv = false;
-    bool inc_lik = false;
-    double llike = R_NegInf;
-
     double calc_like();
     void calc_weight_sums();
     void run();
 
-
     // constructor
-    prodlim(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, 
-            Rcpp::IntegerVector r, Rcpp::IntegerVector t, 
+    breslow(Rcpp::NumericVector lambda, Rcpp::IntegerVector l, 
+            Rcpp::IntegerVector r, Rcpp::IntegerVector t,
             Rcpp::IntegerVector R0, Rcpp::IntegerVector l_full, 
             Rcpp::IntegerVector r_full, Rcpp::IntegerVector t_full,
             double toler, int max_it) {
 
-      maxit = max_it;
       tol = toler;
+      maxit = max_it;
       n_int = lambda.length();
       n_obs = l.length();
       n_obs_full = l_full.length();
@@ -57,26 +56,22 @@ class prodlim{
       right = Rcpp::as< std::vector<int> >(r);
       trun = Rcpp::as<std::vector<int> >(t);
       lambda_0 = Rcpp::as< std::vector<double> >(lambda);
-      h = Rcpp::as< std::vector<double> >(lambda);
       lambda_1 = lambda_0;
       risk_0 = Rcpp::as< std::vector<double> >(R0);
       left_full = Rcpp::as< std::vector<int> >(l_full);
       right_full = Rcpp::as< std::vector<int> >(r_full);
       trun_full = Rcpp::as<std::vector<int> >(t_full);
 
-      p_obs.resize(n_obs);
+      c.resize(n_obs);
       cum_lambda.resize(n_int + 1);
-      n_trans.resize(n_int);
-      cum_n_trans.resize(n_int + 1);
       w_sum.resize(n_int);
-      surv.resize(n_int + 1, 1);
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
-          surv[j] = surv[j - 1] * (1 - h[j - 1]);
+          cum_lambda[j] = cum_lambda[j - 1] + lambda[j - 1];
       }
-      surv[n_int] = 0;
-      h[n_int - 1] = 1;
+      cum_lambda[n_int] = R_PosInf;
+      lambda_0[n_int - 1] = R_PosInf;
       lambda_1[n_int - 1] = R_PosInf;
 
       /* Invert Data */
