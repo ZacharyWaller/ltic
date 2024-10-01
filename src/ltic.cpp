@@ -8,9 +8,9 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, 
             IntegerVector t, IntegerVector R0,  IntegerVector l_full, 
-                IntegerVector r_full, IntegerVector t_full, double toler) {
+            IntegerVector r_full, IntegerVector t_full, double toler, int max_it) {
 
-    ltic ltic_ob(lambda, l, r, t, R0, l_full, r_full, t_full, toler);
+    ltic ltic_ob(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it);
 
     ltic_ob.run();
 
@@ -28,7 +28,7 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r,
 // outer loop
 void ltic::run() {
   double old_like = R_NegInf;
-  while (it < 100000 && !conv) {
+  while (it < maxit && !conv) {
     em_algo();
     convert_to_haz();
     newton_algo();
