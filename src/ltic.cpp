@@ -19,7 +19,7 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["it"] = ltic_ob.it;
     out["lambda"] = ltic_ob.cum_lambda;
     out["tol"] = ltic_ob.tol;
-    out["conv"] = ltic_ob.calc_conv();
+    //out["conv"] = ltic_ob.calc_conv();
 
     return out;
 
@@ -79,15 +79,15 @@ void ltic::em_algo() {
         cum_n_trans[j + 1] = cum_n_trans[j] + n_trans[j];
         h[j] = n_trans[j] / (risk_0[j] - cum_n_trans[j]);
 
-        if (h[j] >= 1) {
-          h[j] = 1 - 1e-10;
+        if (h[j] >= 1.) {
+          h[j] = 1. - 1e-10;
         }
 
-        surv[j + 1] = surv[j] * (1 - h[j]);
+        surv[j + 1] = surv[j] * (1. - h[j]);
 
         // reset for next iteration
-        n_trans[j] = 0;
-        w_sum[j] = 0;
+        n_trans[j] = 0.;
+        w_sum[j] = 0.;
       }
       it_em++;
     }
@@ -135,9 +135,6 @@ void ltic::calc_weight_sums() {
 void ltic::convert_to_haz() {
   for (int j = 1; j < n_int; j++) {
     cum_lambda[j] = -log(surv[j]);
-    if (cum_lambda[j] + 0.0 == 0.0) {
-      cum_lambda[j] = +0.0;
-    }
   }
 }
 
@@ -172,7 +169,7 @@ void ltic::calc_derivs() {
       derv_right = exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]);
       surv_diff = derv_left - derv_right;
 
-      deriv_1[trun_full[i]] += 1;
+      deriv_1[trun_full[i]] += 1.;
       deriv_1[left_full[i]] += -derv_left / surv_diff;
       deriv_1[right_full[i]] += derv_right / surv_diff;
 
@@ -224,7 +221,7 @@ void ltic::half_steps() {
     new_lk = calc_like();
     inc_lik = new_lk >= temp_lk;
 
-    while (tries < 15 && !inc_lik) {
+    while (tries < 5 && !inc_lik) {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {

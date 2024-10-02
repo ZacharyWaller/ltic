@@ -30,9 +30,7 @@ class ltic{
     int maxit;
     int it = 0;
     bool conv = false;
-    bool inc_lik = false;
     double llike = R_NegInf;
-    int tries = 0;
 
     double calc_like();
     std::vector<double> calc_conv();
@@ -77,8 +75,8 @@ class ltic{
       w_sum.resize(n_int);
 
       /* Initiate Survival function */
-      for (int j = 1; j < n_int + 1; j++){
-          surv[j] = surv[j - 1] * (1 - h[j - 1]);
+      for (int j = 0; j < n_int; j++){
+          surv[j + 1] = surv[j] * (1 - h[j]);
       }
 
       surv[n_int] = 0;
