@@ -16,9 +16,12 @@
 #'
 #' @examples
 ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
-                    max_iterations = 1e5, remove_rcens = TRUE,
-                    open_L = TRUE, open_T = FALSE, constr = NULL,
-                    method = c("comb", "em", "newton", "both", "turnbull", "shen", "yu")) {
+  max_it = 1e5, remove_rcens = TRUE, open_L = TRUE, open_T = FALSE,
+  constr = NULL,
+  method = c("comb", "em", "newton", "both", "turnbull", "shen",
+             "yu", "breslow", "prodlim", "bres_comb", "binomial", "optim",
+             "turn_comb")
+) {
 
 
   method <- match.arg(method)
@@ -38,14 +41,19 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   )
 
   alpha <- indicator_matrix(intervals$II, intervals$Oi)
+  remove <- colSums(alpha) == 0
+  alpha <- alpha[, !remove]
   beta <- indicator_matrix(intervals$II, intervals$Ti)
+  beta <- beta[, !remove]
 
+  r_star <- intervals$Oi$right
+  r_star[r_star == Inf] <- intervals$Oi$left[r_star == Inf]
   gamma_int <- data.frame(
-      left = 0,
-      right = intervals$Oi$left,
-      open_left = FALSE,
-      open_right = !open_L
-    )
+    left = intervals$Ti$left,
+    right = r_star,
+    open_left = FALSE,
+    open_right = !open_L
+  )
   gamma <- indicator_matrix(intervals$II, gamma_int)
   deriv_1_0 <- colSums(gamma)
 
@@ -78,49 +86,96 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   }
 
   # Initialise values ----------------------------------------------------------
-  # if (is.null(init)) {
-  #   # good first guess for events
-  #   n_events <- apply(event / apply(event, 1, sum), 2, sum)
-  #   n_cum <- cumsum(n_events)
-  #   y_risk <- y_0 - c(0, n_cum[-length(n_cum)])
-  #   lambda <- n_events / y_risk
-  #   lambda[y_risk == 0] <- 1
-  # }
-
   l <- apply(event, 1, function(x) min(which(x == 1)) - 1)
   r <- apply(event, 1, function(x) max(which(x == 1)))
-  t <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+  if (remove_rcens & any(right == Inf)) {
+    t <- apply(
+      beta[!right == Inf, , drop = FALSE],
+      1, function(x) min(which(x == 1)) - 1)
+  } else {
+    t <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+  }
 
-  lambda <- rep(1 / ncol(alpha), ncol(alpha))
-  lambda[is.nan(lambda)] <- 9999
+  init <- rep(1 / ncol(alpha), ncol(alpha))
+
 
   cat("\n Starting algorithm...\n")
   # Call maximisation algorithm ------------------------------------------------
-  if (method == "newton") {
-    res <- newton_algorithm(lambda, l, r, deriv_1_0)
-  } else if (method == "em") {
-    res <- em_algorithm(lambda, l, r, y_0)
-  } else if (method == "comb") {
-    res <- combined_algorithm(lambda, l, r, deriv_1_0, y_0)
-  } else if (method == "both") {
-    res <- ltic_r(lambda, l, r, t, y_0)
-  } else if (method == "turnbull") {
-    s <- rep(1 / ncol(alpha), ncol(alpha))
-    res <- turnbull_r(s, l, r, t)
-  } else if (method == "shen") {
-    s <- rep(1 / ncol(alpha), ncol(alpha))
-    res <- shen_r(s, l, r, t)
-  } else if (method == "yu") {
-    s <- rep(1 / ncol(alpha), ncol(alpha))
-    res <- yu_r(s, l, r, t)
-  }
+   if (method == "both") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n Go \n")
+    t0 <- Sys.time()
+    res <- ltic_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
 
+  } else if (method == "turn_comb") {
+    t0 <- Sys.time()
+    res <- ltic_turn_r(init, l, r, t, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "turnbull") {
+    t0 <- Sys.time()
+    res <- turnbull_r(init, l, r, t, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "shen") {
+    t0 <- Sys.time()
+    res <- shen_r(init, l, r, t, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "yu") {
+    t0 <- Sys.time()
+    res <- yu_r(init, l, r, t, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "breslow") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    t0 <- Sys.time()
+    res <- breslow_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "prodlim") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n Go \n")
+    t0 <- Sys.time()
+    res <- prodlim_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "bres_comb") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    t0 <- Sys.time()
+    res <- bres_comb_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "binomial") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    t0 <- Sys.time()
+    res <- binomial_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full)
+    time <- Sys.time() - t0
+
+  } else if (method == "optim") {
+    t0 <- Sys.time()
+    res <- optim_method(init, l, r, t, tol)
+    time <- Sys.time() - t0
+  }
+  cat("done")
   list(
     res = res,
     l = l,
     r = r,
     t = t,
     deriv_1_0 = deriv_1_0,
-    y_0 = y_0
+    y_0 = y_0,
+    time = time
   )
 }

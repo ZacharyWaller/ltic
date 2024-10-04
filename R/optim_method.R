@@ -10,20 +10,21 @@
 optim_method <- function(init, left, right, trunc, tol = 1e-9) {
 
 
-  n_int <- length(init)
+  cum_lambda <- c(0, cumsum(init))
+  n_int <- length(init) + 1
   n_obs <- length(left)
   opt <- optim(
-    par = steps,
-    fn = optim_likelihood,
-    gr = like_gradient,
-    lower = rep(tol, n), upper = rep(1 - tol, n),
-    control = list(ndeps = rep(0, n), factr = 0, pgtol = 0),
+    par = cum_lambda,
+    fn = calc_like_r,
+    gr = calc_derivs_r,
+    lower = rep(0, n_int),
+    control = list(ndeps = rep(0, n_int), factr = 0, pgtol = 0, fnscale = -1),
     method = "L-BFGS-B",
-    alpha = alpha, beta = beta
+    left = left, right = right, trun = trunc, n_obs = n_obs, n_int = n_int
   )
 
   list(
-    surv = 1 - c(0, cumsum(opt$par / sum(opt$par))),
+    surv = exp(-opt$par),
     like = -opt$value,
     numit = opt$counts
   )
