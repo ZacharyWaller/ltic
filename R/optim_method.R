@@ -9,22 +9,20 @@
 #' @examples
 optim_method <- function(init, left, right, trunc, tol = 1e-9) {
 
-
-  cum_lambda <- c(0, cumsum(init))
-  n_int <- length(init) + 1
+  n_int <- length(init)
   n_obs <- length(left)
   opt <- optim(
-    par = cum_lambda,
+    par = init,
     fn = calc_like_r,
     gr = calc_derivs_r,
-    lower = rep(0, n_int),
-    control = list(ndeps = rep(0, n_int), factr = 0, pgtol = 0, fnscale = -1),
+    lower = rep(tol, n_int), upper = rep(1 - tol, n_int),
+    control = list(ndeps = rep(0, n_int), factr = 0, pgtol = 0),
     method = "L-BFGS-B",
     left = left, right = right, trun = trunc, n_obs = n_obs, n_int = n_int
   )
 
   list(
-    surv = exp(-opt$par),
+    surv = 1 - cumsum(opt$par / sum(opt$par)),
     like = -opt$value,
     numit = opt$counts
   )
