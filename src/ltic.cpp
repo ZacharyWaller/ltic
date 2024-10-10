@@ -206,7 +206,7 @@ void ltic::half_steps() {
     monotoneC(&n_weight, y, w);
 
     for (int j = 0; j < n_weight; j++) {
-      if (y[j] < 0) y[j] = 1e-9;
+      if (y[j] < 0) y[j] = 0.;
     }
 
     for(int j = 0; j < n_weight; j++){
@@ -221,7 +221,7 @@ void ltic::half_steps() {
     new_lk = calc_like();
     inc_lik = new_lk >= temp_lk;
 
-    while (tries < 5 && !inc_lik) {
+    while (tries < 15 && !inc_lik) {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
