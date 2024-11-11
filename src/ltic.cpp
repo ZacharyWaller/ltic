@@ -47,6 +47,7 @@ double ltic::calc_like() {
       like += log( exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]) - 
         exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]));
   }
+  //if (isnan(like)) like = R_NegInf;
 
   return like;
 }
@@ -81,6 +82,8 @@ void ltic::em_algo() {
 
         if (h[j] >= 1.) {
           h[j] = 1. - 1e-10;
+        } else if (isnan(h[j])) {
+          h[j] = 0.;
         }
 
         surv[j + 1] = surv[j] * (1. - h[j]);
@@ -225,7 +228,7 @@ void ltic::half_steps() {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
-        cum_lambda[j] = cum_lambda[j] + alpha * diff[j];
+        cum_lambda[j + 1] = cum_lambda[j + 1] + alpha * diff[j];
       }
 
       new_lk = calc_like();

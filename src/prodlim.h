@@ -7,17 +7,12 @@ class prodlim{
     std::vector<int> left;
     std::vector<int> right;
     std::vector<int> trun;
-    std::vector<double> lambda_0;
-    std::vector<double> lambda_1;
     std::vector<long double> risk_0;
     std::vector<int> left_full;
     std::vector<int> right_full;
     std::vector<int> trun_full;
 
-    std::vector<double> c;
-    std::vector<double> cum_lambda;
     std::vector<long double> surv;
-    std::vector<long double> p_obs;
     std::vector<long double> n_trans, cum_n_trans, h, w_sum;
     
 
@@ -57,16 +52,12 @@ class prodlim{
       left = Rcpp::as< std::vector<int> >(l);
       right = Rcpp::as< std::vector<int> >(r);
       trun = Rcpp::as<std::vector<int> >(t);
-      lambda_0 = Rcpp::as< std::vector<double> >(lambda);
       h = Rcpp::as< std::vector<long double> >(lambda);
-      lambda_1 = lambda_0;
       risk_0 = Rcpp::as< std::vector<long double> >(R0);
       left_full = Rcpp::as< std::vector<int> >(l_full);
       right_full = Rcpp::as< std::vector<int> >(r_full);
       trun_full = Rcpp::as<std::vector<int> >(t_full);
 
-      p_obs.resize(n_obs);
-      cum_lambda.resize(n_int + 1);
       n_trans.resize(n_int);
       cum_n_trans.resize(n_int + 1);
       w_sum.resize(n_int);
@@ -78,7 +69,6 @@ class prodlim{
       }
       surv[n_int] = 0;
       h[n_int - 1] = 1;
-      lambda_1[n_int - 1] = R_PosInf;
 
       /* Invert Data */
       lr_inv.resize(n_int + 1);

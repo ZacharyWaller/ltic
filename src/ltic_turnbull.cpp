@@ -30,7 +30,7 @@ void ltic_turn::run() {
   while (it < maxit && !conv) {
     em_algo();
     convert_to_haz();
-    //newton_algo();
+    newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
     old_like = llike;
@@ -59,7 +59,7 @@ void ltic_turn::em_algo() {
       // vector of derivative contributions per participant
       calc_weight_sums();
 
-      // calculate new h values
+      // calculate weights values
       for (int j = 0; j < n_int; j++) {
         total_weight += s_0[j] * w_sum[j];
       }
@@ -76,6 +76,7 @@ void ltic_turn::em_algo() {
           w_sum[j] = 0;
       }
       total_weight = 0;
+      surv[n_int] = 0.;
       it_em++;
     }
 }
@@ -137,7 +138,7 @@ void ltic_turn::convert_to_haz() {
     if (surv[j] >= 0) {
       cum_lambda[j] = -log(surv[j]);
     } else {
-      cum_lambda[j] = R_PosInf;
+      cum_lambda[j] = 9999.;
     }
   }
 }
@@ -229,7 +230,7 @@ void ltic_turn::half_steps() {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
-        cum_lambda[j] = cum_lambda[j] + alpha * diff[j];
+        cum_lambda[j + 1] = cum_lambda[j + 1] + alpha * diff[j];
       }
 
       new_lk = calc_like();

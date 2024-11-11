@@ -32,7 +32,7 @@ void turnbull::run() {
       for (int j = 0; j < n_int; j++) {
         total_weight += s_0[j] * w_sum[j];
       }
-
+ 
       // calculate new s values
       for (int j = 0; j < n_int; j++) {
           s_1[j] = s_0[j] * w_sum[j] / total_weight;

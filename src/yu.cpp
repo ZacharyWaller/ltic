@@ -31,9 +31,6 @@ void yu::run() {
     // calculate new s values
     for (int j = 0; j < n_int; j++) {
         s_1[j] = s_0[j] * w_sum[j] / n;
-        // if (s_1[j] < 0) {
-        //   std::cout << "whaet" << std::endl;
-        // }
     }
     
     // check convergence

@@ -226,7 +226,7 @@ void ltic_yu::half_steps() {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
-        cum_lambda[j] = cum_lambda[j] + alpha * diff[j];
+        cum_lambda[j + 1] = cum_lambda[j + 1] + alpha * diff[j];
       }
 
       new_lk = calc_like();

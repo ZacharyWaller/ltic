@@ -39,6 +39,8 @@ void prodlim::run() {
 
         if (h[j] >= 1) {
           h[j] = 1 - 1e-10;
+        } else if (isnan(h[j])) {
+          h[j] = 0.;
         }
 
         // reset for next iteration

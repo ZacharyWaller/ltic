@@ -78,6 +78,7 @@ class ltic_turn{
       for (int j = 0; j < n_int; j++){
           surv[j + 1] = surv[j] - s_0[j];
       }
+      surv[n_int] = 0.;
 
       /* Invert Data */
       lr_inv.resize(n_int + 1);

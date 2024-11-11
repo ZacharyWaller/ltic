@@ -10,8 +10,6 @@ class yu{
     std::vector<double> s_0;
     std::vector<double> s_1;
 
-    std::vector<double> first;
-    std::vector<double> second;
     std::vector<double> surv;
     std::vector<double> w_sum;
 
@@ -52,8 +50,6 @@ class yu{
       s_0 = Rcpp::as< std::vector<double> >(s);
       s_1 = s_0;
 
-      first.resize(n_int);
-      second.resize(n_int);
       w_sum.resize(n_int);
       surv.resize(n_int + 1);
 
