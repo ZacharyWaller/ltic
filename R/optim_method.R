@@ -7,22 +7,21 @@
 #' @export
 #'
 #' @examples
-optim_method <- function(init, left, right, trunc, tol = 1e-9) {
+optim_method <- function(init, alpha, beta, tol = 1e-9) {
 
-  n_int <- length(init)
-  n_obs <- length(left)
+  n <- ncol(alpha)
   opt <- optim(
-    par = init,
-    fn = calc_like_r,
-    gr = calc_derivs_r,
-    lower = rep(tol, n_int), upper = rep(1 - tol, n_int),
-    control = list(ndeps = rep(0, n_int), factr = 0, pgtol = 0),
+    par = apply(alpha/apply(alpha, 1, sum), 2, mean),
+    fn = optim_likelihood,
+    gr = like_gradient,
+    lower = rep(tol, n), upper = rep(1 - tol, n),
+    control = list(ndeps = rep(0, n), factr = 0, pgtol = 0),
     method = "L-BFGS-B",
-    left = left, right = right, trun = trunc, n_obs = n_obs, n_int = n_int
+    alpha = alpha, beta = beta
   )
 
   list(
-    surv = 1 - cumsum(opt$par / sum(opt$par)),
+    surv = 1 - c(0, cumsum(opt$par / sum(opt$par))),
     like = -opt$value,
     numit = opt$counts
   )

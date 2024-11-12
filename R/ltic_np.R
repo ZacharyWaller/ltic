@@ -18,9 +18,9 @@
 ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   max_it = 1e5, remove_rcens = TRUE, open_L = TRUE, open_T = FALSE,
   constr = NULL,
-  method = c("comb", "em", "newton", "both", "turnbull", "shen",
+  method = c("both", "turnbull", "shen",
              "yu", "breslow", "prodlim", "bres_comb", "binomial", "optim",
-             "turn_comb")
+             "turn_comb", "yu_comb", "icm")
 ) {
 
 
@@ -42,9 +42,9 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   alpha <- indicator_matrix(intervals$II, intervals$Oi)
   remove <- colSums(alpha) == 0
-  alpha <- alpha[, !remove]
+  alpha <- alpha[, !remove, drop = FALSE]
   beta <- indicator_matrix(intervals$II, intervals$Ti)
-  beta <- beta[, !remove]
+  beta <- beta[, !remove, drop = FALSE]
 
   r_star <- intervals$Oi$right
   r_star[r_star == Inf] <- intervals$Oi$left[r_star == Inf]
@@ -63,8 +63,10 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   # Right censoring ------------------------------------------------------------
   # number of participants at each time point
-  if (remove_rcens & any(right == Inf)) {
-    right_cens <- alpha[right == Inf, , drop = FALSE]
+  r_cens <- alpha[, ncol(alpha)] == 1
+  if (remove_rcens & any(r_cens)) {
+
+    right_cens <- alpha[r_cens, , drop = FALSE]
 
     if (class(right_cens)[1] == "integer") {
       right_cens <- t(matrix(right_cens))
@@ -77,7 +79,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   # Event matrix ---------------------------------------------------------------
   # n potential events in interval
   if (remove_rcens) {
-    event <- alpha[right != Inf, , drop = FALSE]
+    event <- alpha[!r_cens, , drop = FALSE]
   } else {
     event <- alpha
   }
@@ -88,9 +90,9 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   # Initialise values ----------------------------------------------------------
   l <- apply(event, 1, function(x) min(which(x == 1)) - 1)
   r <- apply(event, 1, function(x) max(which(x == 1)))
-  if (remove_rcens & any(right == Inf)) {
+  if (remove_rcens & any(r_cens)) {
     t <- apply(
-      beta[!right == Inf, , drop = FALSE],
+      beta[!r_cens, , drop = FALSE],
       1, function(x) min(which(x == 1)) - 1)
   } else {
     t <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
@@ -101,7 +103,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   cat("\n Starting algorithm...\n")
   # Call maximisation algorithm ------------------------------------------------
-   if (method == "both") {
+  if (method == "both") {
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
@@ -128,6 +130,11 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   } else if (method == "yu") {
     t0 <- Sys.time()
     res <- yu_r(init, l, r, t, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "yu_comb") {
+    t0 <- Sys.time()
+    res <- ltic_yu_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "breslow") {
@@ -165,7 +172,11 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   } else if (method == "optim") {
     t0 <- Sys.time()
-    res <- optim_method(init, l, r, t, tol)
+    res <- optim_method(init, alpha, beta, tol)
+    time <- Sys.time() - t0
+  } else if (method == "icm") {
+    t0 <- Sys.time()
+    res <- icm_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
   }
   cat("done")
