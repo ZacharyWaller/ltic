@@ -5,8 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/Library/Frameworks/R.framework/Resources/include",
-                "/Library/Frameworks/R.framework/Versions/Current/Resources/library/Rcpp/include",
-                "/Library/Frameworks/R.framework/Versions/Current/Resources/library/cpp11/include"
+                "/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/Rcpp",
+                "/Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library/cpp11"
             ],
             "macFrameworkPath": [
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
