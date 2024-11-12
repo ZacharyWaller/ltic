@@ -10,9 +10,9 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// ltic_r
-List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0);
-RcppExport SEXP _ltic_ltic_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP) {
+// binomial_r
+List binomial_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_binomial_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,138 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
-    rcpp_result_gen = Rcpp::wrap(ltic_r(lambda, l, r, t, R0));
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(binomial_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bres_comb_r
+List bres_comb_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_bres_comb_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(bres_comb_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// breslow_r
+List breslow_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_breslow_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(breslow_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// icm_r
+List icm_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_icm_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(icm_r(lambda, l, r, t, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// length_bias_r
+List length_bias_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, NumericVector del_t, double toler, int max_it);
+RcppExport SEXP _ltic_length_bias_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP del_tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type del_t(del_tSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(length_bias_r(lambda, l, r, t, R0, del_t, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ltic_r
+List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_ltic_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(ltic_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ltic_turn_r
+List ltic_turn_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_ltic_turn_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(ltic_turn_r(lambda, l, r, t, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ltic_yu_r
+List ltic_yu_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_ltic_yu_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(ltic_yu_r(lambda, l, r, t, toler, max_it));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -37,48 +168,61 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calc_like
-NumericVector calc_like(NumericVector lambda, IntegerVector left, IntegerVector right);
-RcppExport SEXP _ltic_calc_like(SEXP lambdaSEXP, SEXP leftSEXP, SEXP rightSEXP) {
+// prodlim_r
+List prodlim_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_prodlim_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type left(leftSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type right(rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_like(lambda, left, right));
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(prodlim_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
     return rcpp_result_gen;
 END_RCPP
 }
-// calc_like_lambda
-NumericVector calc_like_lambda(NumericVector lambda, IntegerVector left, IntegerVector right);
-RcppExport SEXP _ltic_calc_like_lambda(SEXP lambdaSEXP, SEXP leftSEXP, SEXP rightSEXP) {
+// calc_like_r
+NumericVector calc_like_r(NumericVector step, IntegerVector left, IntegerVector right, IntegerVector trun, int n_obs, int n_int);
+RcppExport SEXP _ltic_calc_like_r(SEXP stepSEXP, SEXP leftSEXP, SEXP rightSEXP, SEXP trunSEXP, SEXP n_obsSEXP, SEXP n_intSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type step(stepSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type left(leftSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type right(rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_like_lambda(lambda, left, right));
+    Rcpp::traits::input_parameter< IntegerVector >::type trun(trunSEXP);
+    Rcpp::traits::input_parameter< int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_int(n_intSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_like_r(step, left, right, trun, n_obs, n_int));
     return rcpp_result_gen;
 END_RCPP
 }
-// calc_derivs
-List calc_derivs(NumericVector lambda, IntegerVector left, IntegerVector right);
-RcppExport SEXP _ltic_calc_derivs(SEXP lambdaSEXP, SEXP leftSEXP, SEXP rightSEXP) {
+// calc_derivs_r
+NumericVector calc_derivs_r(NumericVector step, IntegerVector left, IntegerVector right, IntegerVector trun, int n_obs, int n_int);
+RcppExport SEXP _ltic_calc_derivs_r(SEXP stepSEXP, SEXP leftSEXP, SEXP rightSEXP, SEXP trunSEXP, SEXP n_obsSEXP, SEXP n_intSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type step(stepSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type left(leftSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type right(rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_derivs(lambda, left, right));
+    Rcpp::traits::input_parameter< IntegerVector >::type trun(trunSEXP);
+    Rcpp::traits::input_parameter< int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_int(n_intSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_derivs_r(step, left, right, trun, n_obs, n_int));
     return rcpp_result_gen;
 END_RCPP
 }
 // shen_r
-List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
-RcppExport SEXP _ltic_shen_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+List shen_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_shen_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -86,13 +230,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
-    rcpp_result_gen = Rcpp::wrap(shen_r(s, l, r, t));
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(shen_r(s, l, r, t, toler, max_it));
     return rcpp_result_gen;
 END_RCPP
 }
 // turnbull_r
-List turnbull_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
-RcppExport SEXP _ltic_turnbull_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+List turnbull_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_turnbull_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -100,13 +246,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
-    rcpp_result_gen = Rcpp::wrap(turnbull_r(s, l, r, t));
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(turnbull_r(s, l, r, t, toler, max_it));
     return rcpp_result_gen;
 END_RCPP
 }
 // yu_r
-List yu_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t);
-RcppExport SEXP _ltic_yu_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP) {
+List yu_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
+RcppExport SEXP _ltic_yu_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,20 +262,29 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
-    rcpp_result_gen = Rcpp::wrap(yu_r(s, l, r, t));
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(yu_r(s, l, r, t, toler, max_it));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ltic_ltic_r", (DL_FUNC) &_ltic_ltic_r, 5},
+    {"_ltic_binomial_r", (DL_FUNC) &_ltic_binomial_r, 10},
+    {"_ltic_bres_comb_r", (DL_FUNC) &_ltic_bres_comb_r, 10},
+    {"_ltic_breslow_r", (DL_FUNC) &_ltic_breslow_r, 10},
+    {"_ltic_icm_r", (DL_FUNC) &_ltic_icm_r, 6},
+    {"_ltic_length_bias_r", (DL_FUNC) &_ltic_length_bias_r, 8},
+    {"_ltic_ltic_r", (DL_FUNC) &_ltic_ltic_r, 10},
+    {"_ltic_ltic_turn_r", (DL_FUNC) &_ltic_ltic_turn_r, 6},
+    {"_ltic_ltic_yu_r", (DL_FUNC) &_ltic_ltic_yu_r, 6},
     {"_ltic_monotone", (DL_FUNC) &_ltic_monotone, 2},
-    {"_ltic_calc_like", (DL_FUNC) &_ltic_calc_like, 3},
-    {"_ltic_calc_like_lambda", (DL_FUNC) &_ltic_calc_like_lambda, 3},
-    {"_ltic_calc_derivs", (DL_FUNC) &_ltic_calc_derivs, 3},
-    {"_ltic_shen_r", (DL_FUNC) &_ltic_shen_r, 4},
-    {"_ltic_turnbull_r", (DL_FUNC) &_ltic_turnbull_r, 4},
-    {"_ltic_yu_r", (DL_FUNC) &_ltic_yu_r, 4},
+    {"_ltic_prodlim_r", (DL_FUNC) &_ltic_prodlim_r, 10},
+    {"_ltic_calc_like_r", (DL_FUNC) &_ltic_calc_like_r, 6},
+    {"_ltic_calc_derivs_r", (DL_FUNC) &_ltic_calc_derivs_r, 6},
+    {"_ltic_shen_r", (DL_FUNC) &_ltic_shen_r, 6},
+    {"_ltic_turnbull_r", (DL_FUNC) &_ltic_turnbull_r, 6},
+    {"_ltic_yu_r", (DL_FUNC) &_ltic_yu_r, 6},
     {NULL, NULL, 0}
 };
 
