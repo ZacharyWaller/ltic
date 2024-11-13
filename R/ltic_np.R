@@ -20,7 +20,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   constr = NULL,
   method = c("both", "turnbull", "shen",
              "yu", "breslow", "prodlim", "bres_comb", "binomial", "optim",
-             "turn_comb", "yu_comb", "icm")
+             "turn_comb", "yu_comb", "icm", "surv")
 ) {
 
 
@@ -112,6 +112,15 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     res <- ltic_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
 
+  } else if (method == "surv") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n Go \n")
+    t0 <- Sys.time()
+    res <- ltic_s_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
+
   } else if (method == "turn_comb") {
     t0 <- Sys.time()
     res <- ltic_turn_r(init, l, r, t, tol, max_it)
@@ -187,6 +196,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     t = t,
     deriv_1_0 = deriv_1_0,
     y_0 = y_0,
-    time = time
+    time = time,
+    intervals = intervals
   )
 }

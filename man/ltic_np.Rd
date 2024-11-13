@@ -16,7 +16,7 @@ ltic_np(
   open_T = FALSE,
   constr = NULL,
   method = c("both", "turnbull", "shen", "yu", "breslow", "prodlim", "bres_comb",
-    "binomial", "optim", "turn_comb", "yu_comb", "icm")
+    "binomial", "optim", "turn_comb", "yu_comb", "icm", "surv")
 )
 }
 \arguments{

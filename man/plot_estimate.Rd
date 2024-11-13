@@ -4,26 +4,14 @@
 \alias{plot_estimate}
 \title{Plot estimates from self-consistency algorithm}
 \usage{
-plot_estimate(
-  estimate,
-  plot_over = FALSE,
-  plot_type = c("gaps", "filled"),
-  xlim = NULL,
-  cond = NULL,
-  ...
-)
+plot_estimate(estimate, cond = NULL, ...)
 }
 \arguments{
-\item{plot_type}{Either \code{"filled"} for Turnbull intervals filled with
-line or \code{"gaps"} for Turnbull intervals left blank.}
+\item{estimate}{ltic object returned from \code{ltic_np}}
 
-\item{turnbulls}{Data frame containing Turnbull intervals}
+\item{cond}{index of inner-interval to condition survival on}
 
-\item{s}{Estimates of step changes from EM aglorithm}
-
-\item{right}{Only necessary when \code{plot_type} is \code{"filled"} to
-get a right upper limit for the plot. Note: Turnbull intervals are where we
-don't know the value}
+\item{...}{Other arguments supplied to plot function.}
 }
 \description{
 Plot estimates from self-consistency algorithm
