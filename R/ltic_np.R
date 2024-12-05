@@ -20,7 +20,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   constr = NULL,
   method = c("both", "turnbull", "shen",
              "yu", "breslow", "prodlim", "bres_comb", "binomial", "optim",
-             "turn_comb", "yu_comb", "icm", "surv")
+             "turn_comb", "yu_comb", "icm", "surv", "new")
 ) {
 
 
@@ -41,13 +41,16 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
   )
 
   alpha <- indicator_matrix(intervals$II, intervals$Oi)
-  remove <- colSums(alpha) == 0
-  alpha <- alpha[, !remove, drop = FALSE]
+  #remove <- colSums(alpha) == 0
+  #alpha <- alpha[, !remove, drop = FALSE]
   beta <- indicator_matrix(intervals$II, intervals$Ti)
-  beta <- beta[, !remove, drop = FALSE]
+  #beta <- beta[, !remove, drop = FALSE]
+
 
   r_star <- intervals$Oi$right
-  r_star[r_star == Inf] <- intervals$Oi$left[r_star == Inf]
+  if (remove_rcens) {
+    r_star[r_star == Inf] <- intervals$Oi$left[r_star == Inf]
+  }
   gamma_int <- data.frame(
     left = intervals$Ti$left,
     right = r_star,
@@ -63,7 +66,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   # Right censoring ------------------------------------------------------------
   # number of participants at each time point
-  r_cens <- alpha[, ncol(alpha)] == 1
+  r_cens <- intervals$Oi$right == Inf
   if (remove_rcens & any(r_cens)) {
 
     right_cens <- alpha[r_cens, , drop = FALSE]
@@ -100,14 +103,25 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
 
   init <- rep(1 / ncol(alpha), ncol(alpha))
 
+  # Checks 
+  if (length(init) != length(y_0)) {
+    message("y_0")
+    stop()
+  }
 
-  cat("\n Starting algorithm...\n")
+  if (length(init) != length(deriv_1_0)) {
+    message("deriv_1_0")
+    stop()
+  }
+
+
+  #cat("\n Starting algorithm...\n")
   # Call maximisation algorithm ------------------------------------------------
   if (method == "both") {
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-    cat("\n Go \n")
+    cat("\n both \n")
     t0 <- Sys.time()
     res <- ltic_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
@@ -122,26 +136,31 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     time <- Sys.time() - t0
 
   } else if (method == "turn_comb") {
+    cat("\n turn comb \n")
     t0 <- Sys.time()
     res <- ltic_turn_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "turnbull") {
+    cat("\n turn \n")
     t0 <- Sys.time()
     res <- turnbull_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "shen") {
+    cat("\n shen \n")
     t0 <- Sys.time()
     res <- shen_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "yu") {
+    cat("\n yu \n")
     t0 <- Sys.time()
     res <- yu_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "yu_comb") {
+    cat("\n yu_comb \n")
     t0 <- Sys.time()
     res <- ltic_yu_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
@@ -150,6 +169,7 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n bres \n")
     t0 <- Sys.time()
     res <- breslow_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
@@ -158,15 +178,25 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-    cat("\n Go \n")
+    cat("\n prod \n")
     t0 <- Sys.time()
     res <- prodlim_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    time <- Sys.time() - t0
+
+  } else if (method == "new") {
+    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
+    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
+    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n approx \n")
+    t0 <- Sys.time()
+    res <- test_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "bres_comb") {
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
+    cat("\n bres_comb \n")
     t0 <- Sys.time()
     res <- bres_comb_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
@@ -176,14 +206,16 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7, init = NULL,
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
     t0 <- Sys.time()
-    res <- binomial_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full)
+    res <- binomial_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
 
   } else if (method == "optim") {
+    cat("\n optim \n")
     t0 <- Sys.time()
     res <- optim_method(init, alpha, beta, tol)
     time <- Sys.time() - t0
   } else if (method == "icm") {
+    cat("\n icm \n")
     t0 <- Sys.time()
     res <- icm_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0

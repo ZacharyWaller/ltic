@@ -60,6 +60,10 @@ inner_intervals <- function(left, right, trunc = NULL, open_L = TRUE, open_T = F
     open_right = rep(FALSE, length(R_i))
   )
 
+  # keep track of original
+  right_orig <- all_right
+  left_orig <- all_left
+
   # add small number to account for open intervals
   all_right[open_right] <- all_right[open_right] - delta
   all_left[open_left] <- all_left[open_left] + delta
@@ -71,18 +75,19 @@ inner_intervals <- function(left, right, trunc = NULL, open_L = TRUE, open_T = F
 
   ord <- order(all)
 
+  # find a left followed by a right
   left_then_right <- diff(left_right[ord])
   II_flag <- which(left_then_right == 1)
-  II_left <- all[ord][II_flag]
-  II_right <- all[ord][II_flag + 1]
+
+  # store original values (without delta added/subtracted)
+  # small numeric errors can occur when adding then subtracting small numbers
+  orig <- c(left_orig, right_orig)
+  II_left <- orig[ord][II_flag]
+  II_right <- orig[ord][II_flag + 1]
 
   # keep track of open/closed ends of inner intervals
   II_left_open <- all_open[ord][II_flag]
   II_right_open <- all_open[ord][II_flag + 1]
-
-  # remove small number for display
-  II_left[II_left_open] <- II_left[II_left_open] - delta
-  II_right[II_right_open] <- II_right[II_right_open] + delta
 
   # make into data frame
   list(

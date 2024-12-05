@@ -9,7 +9,7 @@
       "args": [
         "--vanilla",
         "-e",
-        "source('tests/length_bias.R')"
+        "source('_junk/bres_test.R')"
       ],
       "env": {
         "R_HOME": "/Library/Frameworks/R.framework/Resources"

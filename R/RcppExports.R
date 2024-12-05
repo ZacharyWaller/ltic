@@ -25,6 +25,10 @@ ltic_r <- function(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it) {
     .Call('_ltic_ltic_r', PACKAGE = 'ltic', lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it)
 }
 
+ltic_s_r <- function(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it) {
+    .Call('_ltic_ltic_s_r', PACKAGE = 'ltic', lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it)
+}
+
 ltic_turn_r <- function(lambda, l, r, t, toler, max_it) {
     .Call('_ltic_ltic_turn_r', PACKAGE = 'ltic', lambda, l, r, t, toler, max_it)
 }
@@ -51,6 +55,10 @@ calc_derivs_r <- function(step, left, right, trun, n_obs, n_int) {
 
 shen_r <- function(s, l, r, t, toler, max_it) {
     .Call('_ltic_shen_r', PACKAGE = 'ltic', s, l, r, t, toler, max_it)
+}
+
+test_r <- function(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it) {
+    .Call('_ltic_test_r', PACKAGE = 'ltic', lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it)
 }
 
 turnbull_r <- function(s, l, r, t, toler, max_it) {

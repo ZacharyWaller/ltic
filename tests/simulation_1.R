@@ -51,6 +51,7 @@ results_0 <- replicate(
     comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "both")
     turn_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "turn_comb", remove_rcens = FALSE)
     yu_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu_comb", remove_rcens = FALSE)
+    bres_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "bres_comb")
     bres <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "breslow")
     opti <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "optim", remove_rcens = FALSE)
     yu <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu", remove_rcens = FALSE)
@@ -63,6 +64,7 @@ results_0 <- replicate(
       comb = c(comb),
       tu_c = c(turn_comb),
       yu_c = c(yu_comb),
+      br_c = c(bres_comb),
       bres = c(bres),
       opti = c(opti),
       yu = c(yu),
@@ -75,6 +77,7 @@ results_0 <- replicate(
 saveRDS(results_0, "outputs/results_0.RDS")
 rm(results_0)
 
+i <- 101
 ## 75% left --------------------------------------------------------------------
 results_075 <- replicate(
   n = 100,
@@ -91,6 +94,7 @@ results_075 <- replicate(
     comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "both")
     turn_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "turn_comb", remove_rcens = FALSE)
     yu_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu_comb", remove_rcens = FALSE)
+    bres_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "bres_comb")
     bres <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "breslow")
     opti <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "optim", remove_rcens = FALSE)
     yu <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu", remove_rcens = FALSE)
@@ -103,6 +107,7 @@ results_075 <- replicate(
       comb = c(comb),
       tu_c = c(turn_comb),
       yu_c = c(yu_comb),
+      br_c = c(bres_comb),
       bres = c(bres),
       opti = c(opti),
       yu = c(yu),
@@ -115,6 +120,7 @@ results_075 <- replicate(
 saveRDS(results_075, "outputs/results_075.RDS")
 rm(results_075)
 
+i <- 201
 ## 50% left --------------------------------------------------------------------
 results_050 <- replicate(
   n = 100,
@@ -131,6 +137,7 @@ results_050 <- replicate(
     comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "both")
     turn_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "turn_comb", remove_rcens = FALSE)
     yu_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu_comb", remove_rcens = FALSE)
+    bres_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "bres_comb")
     bres <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "breslow")
     opti <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "optim", remove_rcens = FALSE)
     yu <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu", remove_rcens = FALSE)
@@ -143,6 +150,7 @@ results_050 <- replicate(
       comb = c(comb),
       tu_c = c(turn_comb),
       yu_c = c(yu_comb),
+      br_c = c(bres_comb),
       bres = c(bres),
       opti = c(opti),
       yu = c(yu),
@@ -172,6 +180,7 @@ results_025 <- replicate(
     comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it / 10, method = "both", remove_rcens = TRUE)
     turn_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it / 10, method = "turn_comb", remove_rcens = FALSE)
     yu_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it / 10, method = "yu_comb", remove_rcens = FALSE)
+    bres_comb <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it / 10, method = "bres_comb")
     bres <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "breslow")
     opti <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "optim", remove_rcens = FALSE)
     yu <- ltic_np(left, right, trunc, tol = tol, max_it =  max_it, method = "yu", remove_rcens = FALSE)
@@ -184,6 +193,7 @@ results_025 <- replicate(
       icm  = c(icm),
       tu_c = c(turn_comb),
       yu_c = c(yu_comb),
+      br_c = c(bres_comb),
       bres = c(bres),
       opti = c(opti),
       yu = c(yu),
