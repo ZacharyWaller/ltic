@@ -124,6 +124,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ltic_s_r
+List ltic_s_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_ltic_s_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(ltic_s_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ltic_turn_r
 List ltic_turn_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
 RcppExport SEXP _ltic_ltic_turn_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
@@ -236,6 +256,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_r
+List test_r(NumericVector lambda, IntegerVector l, IntegerVector r, IntegerVector t, IntegerVector R0, IntegerVector l_full, IntegerVector r_full, IntegerVector t_full, double toler, int max_it);
+RcppExport SEXP _ltic_test_r(SEXP lambdaSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP R0SEXP, SEXP l_fullSEXP, SEXP r_fullSEXP, SEXP t_fullSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l(lSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r(rSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type l_full(l_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type r_full(r_fullSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type t_full(t_fullSEXP);
+    Rcpp::traits::input_parameter< double >::type toler(tolerSEXP);
+    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_r(lambda, l, r, t, R0, l_full, r_full, t_full, toler, max_it));
+    return rcpp_result_gen;
+END_RCPP
+}
 // turnbull_r
 List turnbull_r(NumericVector s, IntegerVector l, IntegerVector r, IntegerVector t, double toler, int max_it);
 RcppExport SEXP _ltic_turnbull_r(SEXP sSEXP, SEXP lSEXP, SEXP rSEXP, SEXP tSEXP, SEXP tolerSEXP, SEXP max_itSEXP) {
@@ -276,6 +316,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ltic_icm_r", (DL_FUNC) &_ltic_icm_r, 6},
     {"_ltic_length_bias_r", (DL_FUNC) &_ltic_length_bias_r, 8},
     {"_ltic_ltic_r", (DL_FUNC) &_ltic_ltic_r, 10},
+    {"_ltic_ltic_s_r", (DL_FUNC) &_ltic_ltic_s_r, 10},
     {"_ltic_ltic_turn_r", (DL_FUNC) &_ltic_ltic_turn_r, 6},
     {"_ltic_ltic_yu_r", (DL_FUNC) &_ltic_ltic_yu_r, 6},
     {"_ltic_monotone", (DL_FUNC) &_ltic_monotone, 2},
@@ -283,6 +324,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ltic_calc_like_r", (DL_FUNC) &_ltic_calc_like_r, 6},
     {"_ltic_calc_derivs_r", (DL_FUNC) &_ltic_calc_derivs_r, 6},
     {"_ltic_shen_r", (DL_FUNC) &_ltic_shen_r, 6},
+    {"_ltic_test_r", (DL_FUNC) &_ltic_test_r, 10},
     {"_ltic_turnbull_r", (DL_FUNC) &_ltic_turnbull_r, 6},
     {"_ltic_yu_r", (DL_FUNC) &_ltic_yu_r, 6},
     {NULL, NULL, 0}

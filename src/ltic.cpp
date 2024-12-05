@@ -224,7 +224,7 @@ void ltic::half_steps() {
     new_lk = calc_like();
     inc_lik = new_lk >= temp_lk;
 
-    while (tries < 15 && !inc_lik) {
+    while (tries < 5 && !inc_lik) {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {

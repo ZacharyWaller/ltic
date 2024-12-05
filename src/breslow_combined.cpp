@@ -18,8 +18,6 @@ List bres_comb_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["llike"] = b_comb_ob.llike;
     out["it"] = b_comb_ob.it;
     out["lambda"] = b_comb_ob.cum_lambda;
-    b_comb_ob.calc_derivs();
-    out["derivs"] = b_comb_ob.deriv_1;
 
     return out;
 
@@ -53,30 +51,57 @@ double bres_comb::calc_like() {
 void bres_comb::em_algo() {
 
     int it_em = 0;
-    double cond_trans = 0;
     while (it_em < 10) {
       // vector of derivative contributions per participant
-      for (int i = 0; i < n_obs; i++) {
-          c[i] = exp(- (cum_lambda[right[i]] - cum_lambda[left[i]]));
-
-          for (int j = left[i]; j < right[i]; j++) {
-              n_trans[j] += lambda_0[j] / (1 - c[i]);
-          }
-      }
-
-      // calculate new h values
+      calc_weight_sums();
+      // calculate new lambda values
       for (int j = 0; j < n_int - 1; j++) {
-          lambda_1[j] = n_trans[j] / risk_0[j];
+          lambda_1[j] = lambda_0[j] * w_sum[j] / risk_0[j];
 
           cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
 
           // reset for next iteration
-          n_trans[j] = 0;
+          w_sum[j] = 0.;
           lambda_0[j] = lambda_1[j];
       }
       it_em++;
     }
 }
+
+void bres_comb::calc_weight_sums() {
+
+  int l_size, r_size;
+
+  // first interval
+  int size_0 = lr_inv[0].in.size();
+  int curr;
+  for (int i = 0; i < size_0; i++) {
+    curr = lr_inv[0].in[i];
+    w_sum[0] = w_sum[0] + (1. / (1. - exp(-cum_lambda[right[curr]] + cum_lambda[left[curr]])));
+  }
+
+  // loop through the rest
+  for (int j = 1; j < n_int; j++) {
+
+    l_size = lr_inv[j].in.size();
+    r_size = lr_inv[j].out.size();
+    w_sum[j] = w_sum[j - 1];
+
+    // in
+    for (int i = 0; i < l_size; i++) {
+      curr = lr_inv[j].in[i];
+      w_sum[j] = w_sum[j] + (1. / (1. - exp(-cum_lambda[right[curr]] + cum_lambda[left[curr]])));
+    }
+
+    // out
+    for (int i = 0; i < r_size; i++) {
+      curr = lr_inv[j].out[i];
+      w_sum[j] = w_sum[j] - (1. / (1. - exp(-cum_lambda[right[curr]] + cum_lambda[left[curr]])));
+    }
+  }
+
+}
+
 
 void bres_comb::newton_algo() {
 
@@ -102,7 +127,7 @@ void bres_comb::calc_derivs() {
       derv_right = exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]);
       surv_diff = derv_left - derv_right;
 
-      deriv_1[trun_full[i]] += 1;
+      deriv_1[trun_full[i]] += 1.;
       deriv_1[left_full[i]] += -derv_left / surv_diff;
       deriv_1[right_full[i]] += derv_right / surv_diff;
 
@@ -125,12 +150,21 @@ void bres_comb::half_steps() {
     double diff[n_weight];
 
     for (int j = 0; j < n_weight; j++) {
-      w[j] = deriv_2[j + 1] / 2;
-      y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+      if (deriv_2[j + 1] >= 0.) deriv_2[j + 1] = -1e-9;
+      //   y[j] = cum_lambda[j + 1];
+      //   w[j] = 1e9;
+      // } else {
+        y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+        w[j] = deriv_2[j + 1] / 2;
+      //}
+      //if (y[j] < 0) y[j] = 0;
     }
 
     
     monotoneC(&n_weight, y, w);
+    for (int j = 0; j < n_weight; j++) {
+      if (y[j] < 0) y[j] = 0.;
+    }
 
     for(int j = 0; j < n_weight; j++){
         diff[j] = y[j] - cum_lambda[j + 1];
@@ -146,7 +180,7 @@ void bres_comb::half_steps() {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
-        cum_lambda[j] = cum_lambda[j] + alpha * diff[j];
+        cum_lambda[j + 1] = cum_lambda[j + 1] + alpha * diff[j];
       }
       new_lk = calc_like();
 

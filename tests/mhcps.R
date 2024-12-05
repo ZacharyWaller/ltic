@@ -22,41 +22,47 @@ right <- data_fem$Vi
 trunc <- data_fem$Ti
 
 ## Run estimates ----
-turn_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turn_comb",
-                     tol = tol, max_it = 100)
-prod <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "prodlim",
-                tol = tol, max_it = max_it)
-bres <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "breslow",
-                tol = tol, max_it = max_it)
-comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "both",
-                tol = tol, max_it = max_it)
-icm <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "icm",
-               tol = tol, max_it = max_it)
-yu_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu_comb",
-                   tol = tol, max_it = 500)
-shen <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "shen",
-                tol = tol, max_it = max_it)
-opti <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "optim",
-                tol = tol, max_it = max_it)
-yu <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu",
-              tol = tol, max_it = max_it)
-turn <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turnbull",
-                tol = tol, max_it = max_it)
-vardi <- lb_np(left, right, tol = tol, max_it = max_it)
+results_fem <- replicate(
+  n = 20,
+  expr = {
+    turn_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turn_comb",
+                        tol = tol, max_it = 500)
+    prod <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "prodlim",
+                    tol = tol, max_it = max_it)
+    bres <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "breslow",
+                    tol = tol, max_it = max_it)
+    comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "both",
+                    tol = tol, max_it = max_it)
+    icm <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "icm",
+                  tol = tol, max_it = max_it)
+    yu_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu_comb",
+                      tol = tol, max_it = 100)
+    shen <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "shen",
+                    tol = tol, max_it = max_it)
+    opti <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "optim",
+                    tol = tol, max_it = max_it)
+    yu <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu",
+                  tol = tol, max_it = max_it)
+    turn <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turnbull",
+                    tol = tol, max_it = max_it)
+    vardi <- lb_np(left, right, tol = tol, max_it = max_it)
 
-
-results_fem <- list(
-  prod = c(prod),
-  icm = c(icm),
-  comb = c(comb),
-  tu_c = c(turn_comb),
-  yu_c = c(yu_comb),
-  bres = c(bres),
-  opti = c(opti),
-  yu = c(yu),
-  shen = c(shen),
-  turn = c(turn)
+    list(
+      prod = c(prod),
+      icm = c(icm),
+      comb = c(comb),
+      tu_c = c(turn_comb),
+      yu_c = c(yu_comb),
+      bres = c(bres),
+      opti = c(opti),
+      yu = c(yu),
+      shen = c(shen),
+      turn = c(turn)
+    )
+  },
+  simplify = FALSE
 )
+
 
 saveRDS(results_fem, "outputs/results_fem.RDS")
 
@@ -67,39 +73,45 @@ right <- data_mal$Vi
 trunc <- data_mal$Ti
 
 ## Run estimates ----
-turn_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turn_comb",
-                tol = tol, max_it = 100)
-prod <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "prodlim",
-                tol = tol, max_it = max_it)
-bres <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "breslow",
-                tol = tol, max_it = max_it)
-comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "both",
-                tol = tol, max_it = max_it)
-icm <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "icm",
-                tol = tol, max_it = max_it)
-yu_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu_comb",
-                tol = tol, max_it = 500)
-shen <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "shen",
-                tol = tol, max_it = max_it)
-opti <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "optim",
-                tol = tol, max_it = max_it)
-yu <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu",
-              tol = tol, max_it = max_it)
-turn <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turnbull",
-                tol = tol, max_it = max_it)
+results_mal <- replicate(
+  n = 20,
+  expr = {
+    turn_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turn_comb",
+                    tol = tol, max_it = 100)
+    prod <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "prodlim",
+                    tol = tol, max_it = max_it)
+    bres <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "breslow",
+                    tol = tol, max_it = max_it)
+    comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "both",
+                    tol = tol, max_it = max_it)
+    icm <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "icm",
+                    tol = tol, max_it = max_it)
+    yu_comb <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu_comb",
+                    tol = tol, max_it = 500)
+    shen <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "shen",
+                    tol = tol, max_it = max_it)
+    opti <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "optim",
+                    tol = tol, max_it = max_it)
+    yu <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "yu",
+                  tol = tol, max_it = max_it)
+    turn <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "turnbull",
+                    tol = tol, max_it = max_it)
 
-results_mal <- list(
-  prod = c(prod),
-  icm = c(icm),
-  comb = c(comb),
-  tu_c = c(turn_comb),
-  yu_c = c(yu_comb),
-  bres = c(bres),
-  opti = c(opti),
-  yu = c(yu),
-  shen = c(shen),
-  turn = c(turn)
+    list(
+      prod = c(prod),
+      icm = c(icm),
+      comb = c(comb),
+      tu_c = c(turn_comb),
+      yu_c = c(yu_comb),
+      bres = c(bres),
+      opti = c(opti),
+      yu = c(yu),
+      shen = c(shen),
+      turn = c(turn)
+    )
+  }
 )
+
 
 saveRDS(results_mal, "outputs/results_mal.RDS")
 

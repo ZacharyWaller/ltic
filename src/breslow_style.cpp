@@ -30,7 +30,7 @@ void breslow::run() {
   double cond_trans = 0;
   while (it < maxit && !conv) {
       // vector of derivative contributions per participant
-      calc_weight_sums();
+    calc_weight_sums();
 
       // calculate new lambda values
       for (int j = 0; j < n_int - 1; j++) {
@@ -39,7 +39,7 @@ void breslow::run() {
           cum_lambda[j + 1] = cum_lambda[j] + lambda_1[j];
 
           // reset for next iteration
-          w_sum[j] = 0;
+          w_sum[j] = 0.;
           lambda_0[j] = lambda_1[j];
       }
       llike = calc_like();

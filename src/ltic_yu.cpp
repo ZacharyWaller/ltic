@@ -72,10 +72,10 @@ void ltic_yu::em_algo() {
           s_0[j] = s_1[j];
           surv[j + 1] = surv[j] - s_1[j];
           if (surv[j + 1] < 0.) {
-            surv[j + 1] = 0.0;
+            surv[j + 1] = 0.;
             s_0[j] = surv[j];
           }
-          w_sum[j] = 0;
+          w_sum[j] = 0.;
       }
       it_em++;
     }
@@ -222,7 +222,7 @@ void ltic_yu::half_steps() {
     new_lk = calc_like();
     inc_lik = new_lk >= temp_lk;
 
-    while (tries < 15 && !inc_lik) {
+    while (tries < 5 && !inc_lik) {
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {
