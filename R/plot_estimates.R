@@ -1,5 +1,6 @@
 # Plot results -----------------------------------------------------------------
-plot_estimate <- function(estimate, surv_type, cond = NULL, plot_type = "new", ...) {
+plot_estimate <- function(
+  estimate, surv_type, cond = NULL, plot_type = "new", ends = "r", ...) {
   #' Plot estimates from self-consistency algorithm
   #'
   #' @param estimate ltic object returned from \code{ltic_np}
@@ -21,20 +22,20 @@ plot_estimate <- function(estimate, surv_type, cond = NULL, plot_type = "new", .
   if (!is.null(cond)) {
     if (surv_type == "exp") {
       len <- length(estimate$res$lambda)
-      adj <- rep(estimate$res$lambda[cond], len - cond)
-      cond_lambda <- c(estimate$res$lambda[1:cond], adj)
+      adj <- rep(estimate$res$lambda[cond + 1], len - cond - 1)
+      cond_lambda <- c(estimate$res$lambda[1:(cond + 1)], adj)
       steps <- exp(-estimate$res$lambda + cond_lambda)
     } else if (surv_type == "prod") {
       len <- length(estimate$res$lambda)
       adj <- rep(0, cond)
-      cond_lambda <- c(adj, estimate$res$lambda[cond:len])
+      cond_lambda <- c(adj, estimate$res$lambda[(cond + 1):len])
       steps <- c(1, cumprod(1 - cond_lambda))
     } else if (surv_type == "step") {
-      len <- length(estimate$res$s)
+      steps_0 <- 1 - cumsum(estimate$res$s)
+      len <- length(steps_0)
       adj <- rep(1, cond)
       fact <- 1 - sum(estimate$res$s[1:cond])
-      cond_s <- c(adj, 1 - cumsum(estimate$res$s[cond:len] / fact))
-      steps <- c(1, cond_s)
+      steps <- c(1, c(adj, steps_0[(cond + 1):len] / fact))
     }
 
   } else {
@@ -48,36 +49,42 @@ plot_estimate <- function(estimate, surv_type, cond = NULL, plot_type = "new", .
       steps <- estimate$res$surv
     }
   }
-  
-  l_time_points <- sort(c(0, rep(ii_left, each = 2), max(ii_right)))
 
-  x <- l_time_points
-  ord <- order(x)
-  y <- rep(steps, each = 2)
-  x <- x[ord]
-  y <- y[ord]
+  # Plot -----------------------------------------------------------------------
+  if (ends %in% c("r", "b")) {
 
-  if (plot_type == "over") {
-    lines(
-      x = x, y = y, col = "red", lwd = 2
-    )
-  } else {
-    plot(
-      x = x, y = y, ylim = c(0, 1), xlim = c(min_x, max_x), type = "l",
-      xlab = "Time", ylab = "Survival",
-      col = "red", lwd = 2, ...
-    )
+    r_time_points <- sort(c(0, rep(ii_right, each = 2), Inf))
+    x <- r_time_points
+    ord <- order(x)
+    y <- rep(steps, each = 2)
+    x <- x[ord]
+    y <- y[ord]
+
+    if (plot_type == "over") {
+      lines(
+        x = x, y = y, lwd = 2, ...
+      )
+    } else {
+      plot(
+        x = x, y = y, ylim = c(0, 1), xlim = c(min_x, max_x), type = "l",
+        lwd = 2, ...
+      )
+    }
   }
 
+  if (ends %in% c("l", "b")) {
 
-  r_time_points <- sort(c(0, rep(ii_right, each = 2), Inf))
-  x <- r_time_points
-  ord <- order(x)
-  x <- x[ord]
-  y <- y[ord]
+    l_time_points <- sort(c(0, rep(ii_left, each = 2), max(ii_right)))
 
-  lines(
-    x = x, y = y, col = "red", lwd = 2
-  )
+    x <- l_time_points
+    ord <- order(x)
+    y <- rep(steps, each = 2)
+    x <- x[ord]
+    y <- y[ord]
+
+    lines(
+      x = x, y = y, lwd = 2, ...
+    )
+  }
 
 }
