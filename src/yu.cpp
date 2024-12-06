@@ -43,11 +43,11 @@ void yu::run() {
     for (int j = 0; j < n_int; j++) {
         s_0[j] = s_1[j];
         surv[j + 1] = surv[j] - s_1[j];
-        if (surv[j + 1] < 0) {
+        if (surv[j + 1] < 0.) {
           surv[j + 1] = 0.0;
           s_0[j] = surv[j];
         }
-        w_sum[j] = 0;
+        w_sum[j] = 0.;
     }
   }
 }

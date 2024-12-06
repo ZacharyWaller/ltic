@@ -20,6 +20,7 @@ class bres_comb{
     std::vector<double> cum_lambda;
     std::vector<double> exp_lambda_0, exp_lambda_1;
     std::vector<double> n_trans, cum_n_trans, h;
+    std::vector<double> w_sum;
 
     double tol;
     int maxit;
@@ -29,9 +30,17 @@ class bres_comb{
     double llike = R_NegInf;
     int it_newt = 0, it_big = 0, tries = 0;
 
+    class invert_data{
+      public:
+        std::vector<int> in;
+        std::vector<int> out;
+    };
+
+    std::vector<invert_data> lr_inv;
+
     double calc_like();
     void em_algo();
-    void convert_lambda();
+    void calc_weight_sums();
     void newton_algo();
     void calc_derivs();
     void half_steps();
@@ -72,6 +81,7 @@ class bres_comb{
       exp_lambda_0.resize(n_int);
       exp_lambda_1.resize(n_int);
       h.resize(n_int);
+      w_sum.resize(n_int);
 
       // initiate cum_lambda
       for (int j = 1; j < n_int + 1; j++){
@@ -80,6 +90,39 @@ class bres_comb{
       cum_lambda[n_int] = R_PosInf;
       lambda_0[n_int - 1] = R_PosInf;
       lambda_1[n_int - 1] = R_PosInf;
+
+      /* Invert Data */
+      lr_inv.resize(n_int + 1);
+      std::vector<int> left_sizes(n_int + 1);
+      std::vector<int> right_sizes(n_int + 1);
+
+      // find sizes
+      for (int i = 0; i < n_obs; i++) {
+        left_sizes[left[i]]++;
+        right_sizes[right[i]]++;
+      }
+
+      // make data_inv correct size
+      for (int j = 0; j < n_int + 1; j++) {
+        lr_inv[j].in.resize(left_sizes[j]);
+        lr_inv[j].out.resize(right_sizes[j]);
+      }
+
+      int curr_l, curr_r;
+      int curr_j_l, curr_j_r;
+      // transpose data
+      for (int i = 0; i < n_obs; i++) {
+        curr_l = left[i];
+        curr_r = right[i];
+        curr_j_l = left_sizes[curr_l] - 1;
+        curr_j_r = right_sizes[curr_r] - 1;
+        lr_inv[curr_l].in[curr_j_l] = i;
+        lr_inv[curr_r].out[curr_j_r] = i;
+
+        left_sizes[curr_l]--;
+        right_sizes[curr_r]--;
+      }
+
 
     };
 
