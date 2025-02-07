@@ -4,14 +4,15 @@ results_fem <- readRDS("outputs/results_fem.RDS")
 results_mal <- readRDS("outputs/results_mal.RDS")
 
 # Make plots -------------------------------------------------------------------
+devtools::load_all()
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tibble)
 library(xtable)
 
-data <- results_fem
-sim_name <- "mhcps_fem"
+data <- results_mal
+sim_name <- "mhcps_mal"
 
 # Extract and collate times ----------------------------------------------------
 t_results <- data.frame(
@@ -87,7 +88,8 @@ plot_time <- bind_rows(t_results) %>%
     name = "Method", labels = labels
   ) +
   geom_boxplot() +
-  theme_minimal()
+  theme_minimal() +
+  coord_flip()
 
 ## Iterations ----
 plot_numit <- bind_rows(numit_results) %>%
@@ -101,7 +103,8 @@ plot_numit <- bind_rows(numit_results) %>%
     name = "Method", labels = labels
   ) +
   geom_boxplot() +
-  theme_minimal()
+  theme_minimal() +
+  coord_flip()
 
 # Tables -----------------------------------------------------------------------
 ## Likeilhood Ranks ----
@@ -206,16 +209,52 @@ pdf(
   width = 8, height = 4
 )
 par(mfrow = c(1, 2))
-plot_estimate(prod_fem, surv_type = "prod", xlab = "Age", ylab = "Survival", main = "Females")
-plot_estimate(opti_fem, surv_type = "step", col = "red", lty = 2, plot_type = "over")
-plot_estimate(turn_fem, surv_type = "step", col = "blue", lty = 3, plot_type = "over")
+par(mar = c(4.1, 4.1, 2.1, 2.1))
 
-plot_estimate(prod_mal, surv_type = "prod", xlab = "Age", ylab = "Survival", main = "Males")
-plot_estimate(opti_mal, surv_type = "step", col = "red", lty = 2, plot_type = "over")
-plot_estimate(turn_mal, surv_type = "step", col = "blue", lty = 3, plot_type = "over")
+plot_estimate(results_fem$prod, surv_type = "prod", xlab = "Age", ylab = "Survival", main = "Females")
+plot_estimate(results_fem$opti, surv_type = "step", col = "red", lty = 2, plot_type = "over")
+plot_estimate(results_fem$turn, surv_type = "step", col = "blue", lty = 3, plot_type = "over")
+
+plot_estimate(results_mal$prod, surv_type = "prod", xlab = "Age", ylab = "Survival", main = "Males")
+plot_estimate(results_mal$opti, surv_type = "step", col = "red", lty = 2, plot_type = "over")
+plot_estimate(results_mal$turn, surv_type = "step", col = "blue", lty = 3, plot_type = "over")
 
 dev.off()
 
-plot_estimate(prod, surv_type = "prod", cond = 1)
-plot_estimate(opti, surv_type = "step", cond = 1, col = "red", lty = 2, plot_type = "over")
-plot_estimate(turn, surv_type = "step", cond = 0, col = "blue", lty = 3, plot_type = "over")
+# Conditional ------------------------------------------------------------------
+pdf(
+  file = "outputs/mhcps_plots_cond.pdf",
+  width = 8, height = 4
+)
+par(mfrow = c(1, 2))
+par(mar = c(4.1, 4.1, 2.1, 2.1))
+
+plot_estimate(results_fem$prod, surv_type = "prod", cond = 1, xlab = "Age", ylab = "Survival", main = "Females")
+plot_estimate(results_mal$prod, surv_type = "prod", cond = 1, xlab = "Age", ylab = "Survival", main = "Males")
+
+dev.off()
+
+# Risk sets ----
+left <- data_fem$Ui
+right <- data_fem$Vi
+trunc <- data_fem$Ti
+
+ints <- inner_intervals(left, right, trunc)
+alpha <- indicator_matrix(ints$II, ints$Oi)
+beta <- indicator_matrix(ints$II, ints$Ti)
+
+plot(colSums(beta) - colSums(alpha[right == Inf, ]))
+
+# Turnbull augmented risk set ----
+data <- results_fem
+int <- data$turn$intervals
+alpha <- indicator_matrix(int$II, int$Oi)
+beta <- indicator_matrix(int$II, int$Ti)
+
+s <- data$turn$res$s
+
+mu_ij <- t(t(alpha) * s) / colSums(t(alpha) * s)
+nu_ij <- t(t(1 - beta) * s) / colSums(t(beta) * s)
+
+scales::scientific(sum(mu_ij + nu_ij))
+1 - sum(nu_ij) / sum(mu_ij + nu_ij)

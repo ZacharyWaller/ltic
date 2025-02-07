@@ -51,6 +51,7 @@ results_fem <- list(
   comb = c(fem_comb),
   tu_c = c(fem_turn_comb),
   yu_c = c(fem_yu_comb),
+  br_c = c(fem_bres_comb),
   bres = c(fem_bres),
   opti = c(fem_opti),
   yu = c(fem_yu),
@@ -73,6 +74,8 @@ mal_prod <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "prodlim",
                 tol = tol, max_it = max_it)
 mal_bres <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "breslow",
                 tol = tol, max_it = max_it)
+mal_bres_comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "bres_c",
+                    tol = tol, max_it = max_it)
 mal_comb <- ltic_np(left, right, trunc, remove_rcens = TRUE, method = "both",
                 tol = tol, max_it = max_it)
 mal_icm <- ltic_np(left, right, trunc, remove_rcens = FALSE, method = "icm",
@@ -94,6 +97,7 @@ results_mal <- list(
   comb = c(mal_comb),
   tu_c = c(mal_turn_comb),
   yu_c = c(mal_yu_comb),
+  br_c = c(mal_bres_comb),
   bres = c(mal_bres),
   opti = c(mal_opti),
   yu = c(mal_yu),
