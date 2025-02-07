@@ -199,8 +199,8 @@ void ltic::half_steps() {
       //   y[j] = cum_lambda[j + 1];
       //   w[j] = 1e9;
       // } else {
-        y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
-        w[j] = deriv_2[j + 1] / 2;
+      y[j] = -deriv_1[j + 1] / deriv_2[j + 1] + cum_lambda[j + 1];
+      w[j] = deriv_2[j + 1] / 2;
       //}
       //if (y[j] < 0) y[j] = 0;
     }

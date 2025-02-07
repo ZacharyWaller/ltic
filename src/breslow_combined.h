@@ -73,8 +73,8 @@ class bres_comb{
 
       c.resize(n_obs);
       deriv.resize(n_obs);
-      deriv_1.resize(n_int);
-      deriv_2.resize(n_int);
+      deriv_1.resize(n_int + 1);
+      deriv_2.resize(n_int + 1);
       cum_lambda.resize(n_int + 1);
       n_trans.resize(n_int);
       cum_n_trans.resize(n_int + 1);

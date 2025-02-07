@@ -66,8 +66,8 @@ class ltic{
       right_full = Rcpp::as< std::vector<int> >(r_full);
       trun_full = Rcpp::as<std::vector<int> >(t_full);
 
-      deriv_1.resize(n_int);
-      deriv_2.resize(n_int);
+      deriv_1.resize(n_int + 1);
+      deriv_2.resize(n_int + 1);
       cum_lambda.resize(n_int + 1);
       surv.resize(n_int + 1, 1);
       n_trans.resize(n_int);
