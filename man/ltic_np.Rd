@@ -2,26 +2,75 @@
 % Please edit documentation in R/ltic_np.R
 \name{ltic_np}
 \alias{ltic_np}
-\title{Calculate maximum likelihood of survival function}
+\title{Non-parametric estimate for left-truncated interval-censored (LTIC) data}
 \usage{
 ltic_np(
   left,
   right,
   trunc = NULL,
   tol = 1e-07,
-  init = NULL,
   max_it = 1e+05,
-  remove_rcens = TRUE,
   open_L = TRUE,
   open_T = FALSE,
-  constr = NULL,
   method = c("both", "turnbull", "shen", "yu", "breslow", "prodlim", "bres_comb",
-    "binomial", "optim", "turn_comb", "yu_comb", "icm", "surv")
+    "binomial", "optim", "turn_comb", "yu_comb", "icm", "surv", "new")
 )
 }
 \arguments{
-\item{constr}{}
+\item{left}{Left end-point of observation interval. Last time of negative
+diagnoses. -\code{Inf} for let-censored data.}
+
+\item{right}{Right end-point of observation interval. First time of positive
+diagnoses. \code{Inf} for right-censored data.}
+
+\item{trunc}{Truncation (entry) time. May be 0 or \code{NULL} for no
+truncation.}
+
+\item{tol}{Tolerance used for convergence of maximisation algorithm.}
+
+\item{max_it}{Maximum number of iterations.}
+
+\item{open_L}{Open interval left end-point. See details.}
+
+\item{open_T}{Open interval from truncation time. See details.}
+
+\item{method}{Maximization method. See details.}
 }
 \description{
-Calculate maximum likelihood of survival function
+Calculate the non-parametric maximum-likelihood estimate of left-truncated
+interval-censored (LTIC) data
+}
+\details{
+If \code{trunc} is supplied then it must be supplied for all observations.
+The default observation intervals are open on the left and closed on the
+right (L, R] as suggested by Ng (2002). Truncation times have been a cause of
+continued confusion in respect to interval-censored data, see Yu (2023) for
+an in-depth discussion. Here truncation times are treated as closed.
+
+The maximization methods available via the \code{method} argument include a
+novel product-limit EM algorithm (\code{prodlim}) and combined EM-ICM
+algorithm based on it (\code{both}). Efficient implementations of a number
+of existing algorithms are also available, including EM algorithms
+(\code{turnbull, shen, yu, breslow}), modified ICM algorithms
+(\code{icm, surv}), EM-ICM algorithms (\code{turn_comb, yu_comb,
+bres_comb}) and a quasi-Newton algorithm (\code{optim}). The product-limit
+EM-ICM is the default as it is the fastest and most accurate across most
+situations. See Waller et al. (2025) for details.
+}
+\examples{
+trunc <- c(0, 2, 4)
+left <- c(3, 5, 7)
+right <- c(Inf, 10, 10)
+ltic_np(left, right, trunc)
+
+}
+\references{
+Ng, M. P. (2002). A modification of Peto's nonparametric estimation of survival curves for interval-censored data. Biometrics, 58(2), 439-442.
+
+Yu, Q. (2023). The generalised MLE with truncated interval-censored data. Journal of Nonparametric Statistics, 35(2), 266-282.
+
+Waller, Z., Marshall, A. H., Kee, F., & Lamrock, F. (2025). A fast and stable algorithm for calculating the non-parametric maximum likelihood estimate of left-truncated and interval-censored data.
+}
+\author{
+Zachary Waller
 }

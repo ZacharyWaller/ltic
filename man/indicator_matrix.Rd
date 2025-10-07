@@ -2,10 +2,16 @@
 % Please edit documentation in R/indicator_matrix.R
 \name{indicator_matrix}
 \alias{indicator_matrix}
-\title{Check which inner intervals are subsets of other intervals. These other
-intervals could be observation intervals or truncation intervals, for example.}
+\title{Check which inner-intervals are subsets of other intervals. These other
+intervals could be observation intervals or truncation intervals, for
+example.}
 \usage{
-indicator_matrix(II, interval, delta = NULL, type = c("integer", "logical"))
+indicator_matrix(
+  inner_int,
+  interval,
+  delta = NULL,
+  type = c("integer", "logical")
+)
 }
 \value{
 Matrix of \code{M} x \code{N} where \code{M} is the number of
@@ -13,8 +19,9 @@ censored intervals and \code{N} is the number of inner intervals.
 1 where inner interval is subset of censored interval and 0 otherwise.
 }
 \description{
-Check which inner intervals are subsets of other intervals. These other
-intervals could be observation intervals or truncation intervals, for example.
+Check which inner-intervals are subsets of other intervals. These other
+intervals could be observation intervals or truncation intervals, for
+example.
 }
 \examples{
 left <- c(0, 1, 2, 3, 4)

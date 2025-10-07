@@ -2,27 +2,29 @@
 % Please edit documentation in R/between_obs.R
 \name{between_obs}
 \alias{between_obs}
-\title{Check which observations a point lies between}
+\title{Check which assess a point lies between}
 \usage{
-between_obs(event_time, observations)
+between_obs(event_time, assess)
 }
 \arguments{
 \item{event_time}{A vector of event times}
 
-\item{observations}{A vector of observations to check. Not necessarily in order}
+\item{assess}{A vector of assessment times to check. Not necessarily
+in order}
 }
 \value{
-A matrix of lower and upper bounds from \code{observations} that
+A matrix of lower and upper bounds from \code{assess} that
 each \code{event_time} lies between.
 }
 \description{
-Check which observations a point lies between
+Check which assess a point lies between
 }
 \details{
 This treats the intervals between observation times as open on
 the bottom and closed on top. If \code{event_time} lies exactly on an
 observation, that observation will be the upper.
-If \code{event_time} doesn't lie between any of the observations, +/- \code{Inf}
+If \code{event_time} doesn't lie between any of the assess, +/-
+\code{Inf}
 will be returned along with the closest observation.
 }
 \examples{

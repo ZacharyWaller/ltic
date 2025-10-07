@@ -14,8 +14,8 @@ inner_intervals(left, right, trunc = NULL, open_L = TRUE, open_T = FALSE)
 \item{trunc}{Truncation time}
 }
 \value{
-Data-frame containing left and right inner-intervals and open/closed
-status of each end-point.
+Data-frame containing left and right inner-intervals and
+open/closed status of each end-point.
 }
 \description{
 Find inner-intervals from observation times
@@ -28,5 +28,6 @@ inner_intervals(left, right, trunc)
 turnbull_est(left, right, trunc)
 }
 \references{
-Qiqing Yu "The generalised MLE with truncated interval-censored data 2022"
+Qiqing Yu "The generalised MLE with truncated interval-censored
+data 2022"
 }
