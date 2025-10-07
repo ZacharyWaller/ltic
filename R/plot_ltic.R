@@ -1,6 +1,7 @@
 # Plot results -----------------------------------------------------------------
-plot_estimate <- function(
-  estimate, surv_type, cond = NULL, plot_type = "new", ends = "r", ...) {
+plot.ltic <- function(
+  estimate, cond = NULL, plot_type = "new", ends = "r", ...
+) {
   #' Plot estimates from self-consistency algorithm
   #'
   #' @param estimate ltic object returned from \code{ltic_np}
@@ -9,28 +10,29 @@ plot_estimate <- function(
   #'
   #' @export
   #' @examples
+  #' data <- 
   #'
 
   int <- estimate$intervals
   ii_left <- int$II$left
   ii_right <- int$II$right
+  surv_type <- estimate$type
 
   max_x <- max(ii_right[ii_right != Inf])
   min_x <- min(int$Ti$left)
 
-
   if (!is.null(cond)) {
-    if (surv_type == "exp") {
+    if (surv_type == "expo") {
       len <- length(estimate$res$lambda)
       adj <- rep(estimate$res$lambda[cond + 1], len - cond - 1)
       cond_lambda <- c(estimate$res$lambda[1:(cond + 1)], adj)
       steps <- exp(-estimate$res$lambda + cond_lambda)
-    } else if (surv_type == "prod") {
+    } else if (surv_type == "prodlim") {
       len <- length(estimate$res$lambda)
       adj <- rep(0, cond)
       cond_lambda <- c(adj, estimate$res$lambda[(cond + 1):len])
       steps <- c(1, cumprod(1 - cond_lambda))
-    } else if (surv_type == "step") {
+    } else if (surv_type == "surv") {
       steps_0 <- 1 - cumsum(estimate$res$s)
       len <- length(steps_0)
       adj <- rep(1, cond)
@@ -39,11 +41,11 @@ plot_estimate <- function(
     }
 
   } else {
-    if (surv_type == "exp") {
+    if (surv_type == "expo") {
       steps <- exp(-estimate$res$lambda)
-    } else if (surv_type == "prod") {
+    } else if (surv_type == "prodlim") {
       steps <- c(1, cumprod(1 - estimate$res$lambda))
-    } else if (surv_type == "step") {
+    } else if (surv_type == "surv") {
       steps <- c(1, 1 - cumsum(estimate$res$s))
     } else {
       steps <- estimate$res$surv
@@ -86,5 +88,4 @@ plot_estimate <- function(
       x = x, y = y, lwd = 2, ...
     )
   }
-
 }
