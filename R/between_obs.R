@@ -1,17 +1,19 @@
-# between_obs() --------------------------------------------------------------------
-between_obs <- function(event_time, observations) {
-  #' Check which observations a point lies between
+# between_obs() ----------------------------------------------------------------
+between_obs <- function(event_time, assess) {
+  #' Check which assess a point lies between
   #'
   #' @param event_time A vector of event times
-  #' @param observations A vector of observations to check. Not necessarily in order
+  #' @param assess A vector of assessment times to check. Not necessarily
+  #' in order
   #'
-  #' @return A matrix of lower and upper bounds from \code{observations} that
+  #' @return A matrix of lower and upper bounds from \code{assess} that
   #' each \code{event_time} lies between.
   #'
   #' @details This treats the intervals between observation times as open on
   #' the bottom and closed on top. If \code{event_time} lies exactly on an
   #' observation, that observation will be the upper.
-  #' If \code{event_time} doesn't lie between any of the observations, +/- \code{Inf}
+  #' If \code{event_time} doesn't lie between any of the assess, +/-
+  #' \code{Inf}
   #' will be returned along with the closest observation.
   #'
   #' @export
@@ -21,21 +23,21 @@ between_obs <- function(event_time, observations) {
   #' between_obs(0, c(1, 2, 3, 4, 5, 6)) # returns -Inf, 1
   #' between_obs(9, c(1, 2, 3, 4, 5, 6)) # returns 6, Inf
 
-  between_inner <- function(event_time, observations) {
+  between_inner <- function(event_time, assess) {
 
-    bigger <- observations >= event_time
-    smaller <- observations < event_time
+    bigger <- assess >= event_time
+    smaller <- assess < event_time
 
     if (all(!bigger)) {
       upper <- Inf
     } else {
-      upper <- min(observations[bigger])
+      upper <- min(assess[bigger])
     }
 
     if (all(!smaller)) {
       lower <- -Inf
     } else {
-      lower <- max(observations[smaller])
+      lower <- max(assess[smaller])
     }
 
     c("lower" = lower, "upper" = upper)
@@ -43,7 +45,7 @@ between_obs <- function(event_time, observations) {
   }
 
 
-  sapply(event_time, function(x) between_inner(x, observations), simplify = "vector")
+  sapply(event_time, function(x) between_inner(x, assess), simplify = "vector")
 
 }
 

@@ -1,15 +1,18 @@
 # Find the Inner intervals -----------------------------------------------------
-inner_intervals <- function(left, right, trunc = NULL, open_L = TRUE, open_T = FALSE) {
+inner_intervals <- function(
+  left, right, trunc = NULL, open_L = TRUE, open_T = FALSE
+) {
   #' Find inner-intervals from observation times
   #'
   #' @param left Left end point of interval
   #' @param right Right end point of interval
   #' @param trunc Truncation time
   #'
-  #' @return Data-frame containing left and right inner-intervals and open/closed
-  #' status of each end-point.
-  #' @export
-  #' @references Qiqing Yu "The generalised MLE with truncated interval-censored data 2022"
+  #' @return Data-frame containing left and right inner-intervals and
+  #' open/closed status of each end-point.
+  #'
+  #' @references Qiqing Yu "The generalised MLE with truncated interval-censored
+  #' data 2022"
   #'
   #' @examples
   #' trunc <- c(0,   0, 0,   1,    1,   1)

@@ -1,12 +1,20 @@
-#' @param left
-#' @param right
-#' @param trunc
-#' @param tol
+#' NPMLE for left-truncated interval-censored data using quasi-Newton method
 #'
-#' @return
-#' @export
+#' @description Wrapper for the \code{optim()} function to calculate the NPMLE
 #'
-#' @examples
+#' @param init Initial values for the probability masses in each inner-interval
+#' @param alpha Indicator matrix of events in each inner-interval
+#' @param beta Indicator matrix of truncation times for each inner-interval
+#' @param tol Tolerance
+#'
+#' @details Using a method as roughly described by Hudgens (2005) (the exact
+#' details aren't given there)
+#'
+#' @author Zachary Waller
+#'
+#' @references
+#' Hudgens, M. G. (2005). On nonparametric maximum likelihood estimation with interval censoring and left truncation. Journal of the Royal Statistical Society Series B: Statistical Methodology, 67(4), 573-587.
+#'
 optim_method <- function(init, alpha, beta, tol = 1e-9) {
 
   n <- ncol(alpha)
@@ -29,14 +37,7 @@ optim_method <- function(init, alpha, beta, tol = 1e-9) {
 
 }
 
-#' @param steps
-#' @param alpha
-#' @param beta
-#'
-#' @return
-#' @export
-#'
-#' @examples
+
 like_gradient <- function(steps, alpha, beta) {
 
   top <- alpha / colSums(t(alpha) * steps)
@@ -46,14 +47,6 @@ like_gradient <- function(steps, alpha, beta) {
 
 }
 
-#' @param steps
-#' @param alpha
-#' @param beta
-#'
-#' @return
-#' @export
-#'
-#' @examples
 optim_likelihood <- function(steps, alpha, beta) {
 
   steps <- steps / sum(steps)
