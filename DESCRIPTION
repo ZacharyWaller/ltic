@@ -14,4 +14,8 @@ RoxygenNote: 7.3.2
 LinkingTo:
     Rcpp
 Imports:
-    Rcpp
+    ICsurv,
+    numDeriv,
+    Rcpp,
+    splines2
+LazyData: TRUE

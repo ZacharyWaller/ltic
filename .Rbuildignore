@@ -2,3 +2,4 @@
 ^renv\.lock$
 ^ltic\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
