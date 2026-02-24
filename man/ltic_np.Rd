@@ -12,8 +12,9 @@ ltic_np(
   max_it = 1e+05,
   open_L = TRUE,
   open_T = FALSE,
-  method = c("both", "turnbull", "shen", "yu", "breslow", "prodlim", "bres_comb",
-    "binomial", "optim", "turn_comb", "yu_comb", "icm", "surv", "new")
+  method = c("PL-ICM", "Turnbull", "Shen", "Yu", "Breslow", "Product-Limit",
+    "Breslow-ICM", "Quasi-Newton", "Turnbull-ICM", "Yu-ICM", "ICM"),
+  init = NULL
 )
 }
 \arguments{

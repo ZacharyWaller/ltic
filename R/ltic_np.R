@@ -50,33 +50,48 @@
 #' right <- c(Inf, 10, 10)
 #' ltic_np(left, right, trunc)
 #'
-ltic_np <- function(left, right, trunc = NULL, tol = 1e-7,
+ltic_np <- function(
+  left, right, trunc = NULL, tol = 1e-7,
   max_it = 1e5, open_L = TRUE, open_T = FALSE,
-  method = c("both", "turnbull", "shen",
-             "yu", "breslow", "prodlim", "bres_comb", "binomial", "optim",
-             "turn_comb", "yu_comb", "icm", "surv", "new")
+  method = c("PL-ICM", "Turnbull", "Shen",
+             "Yu", "Breslow", "Product-Limit", "Breslow-ICM", "Quasi-Newton",
+             "Turnbull-ICM", "Yu-ICM", "ICM"),
+  init = NULL
 ) {
 
   method <- match.arg(method)
 
+  # Checks ----
   # truncation times
   if (is.null(trunc)) {
     trunc <- rep(0, length(left))
   } else if (length(trunc) != length(left)) {
     stop("Error: length(trunc) != length(left) - if supplied, there must be as
          many truncation times as left interval times.")
+  } else if (! all(trunc <= right)) {
+    stop("Error: if supplied, all truncation times must be smaller than the
+         right interval ends.")
   }
 
+  # left small than right
+  if (!all(left < right)) {
+    stop("Error: all left interval end must be smaller than the right interval 
+         ends")
+
+  }
+
+  # Pre-calculating ----
   # calculate inner intervals
   intervals <- inner_intervals(
     left, right, trunc,
     open_L = open_L, open_T = open_T
   )
 
+  # would like to get rid of these ideally
   alpha <- indicator_matrix(intervals$II, intervals$Oi)
   beta <- indicator_matrix(intervals$II, intervals$Ti)
 
-  if (method %in% c("prodlim", "both", "breslow", "new", "bres_comb")) {
+  if (method %in% c("PL-ICM", "both", "Breslow", "Breslow-ICM")) {
     remove_rcens <- TRUE
   } else {
     remove_rcens <- FALSE
@@ -96,11 +111,11 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7,
   gamma <- indicator_matrix(intervals$II, gamma_int)
   deriv_1_0 <- colSums(gamma)
 
-  # Left truncation ------------------------------------------------------------
+  # Left truncation ----
   # number of participants who have entered. One for each inner interval
   y_0 <- colSums(beta)
 
-  # Right censoring ------------------------------------------------------------
+  # Right censoring ----
   # number of participants at each time point
   r_cens <- intervals$Oi$right == Inf
   if (remove_rcens & any(r_cens)) {
@@ -132,140 +147,111 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7,
   if (remove_rcens & any(r_cens)) {
     t <- apply(
       beta[!r_cens, , drop = FALSE],
-      1, function(x) min(which(x == 1)) - 1)
+      1, function(x) min(which(x == 1)) - 1
+    )
   } else {
     t <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
   }
 
-  init <- rep(1 / ncol(alpha), ncol(alpha))
-
-  # Checks
-  if (length(init) != length(y_0)) {
-    message("y_0")
-    stop()
+  # Initial values ----
+  if (is.null(init)) {
+    init <- rep(1 / ncol(alpha), ncol(alpha))
+    surv_init <- c(1, 1 - cumsum(init))
+    surv_init[length(surv_init)] <- 0
+    h_init <- init / surv_init[-length(surv_init)]
+    cum_lambda_init <- -log(surv_init)
+    lambda_init <- diff(cum_lambda_init)
+  } else {
+    h_init <- init
   }
 
-  if (length(init) != length(deriv_1_0)) {
-    message("deriv_1_0")
-    stop()
-  }
 
   # Call maximisation algorithm ------------------------------------------------
   type <- "surv"
-  if (method == "both") {
+  if (method == "PL-ICM") {
     ## PL-ICM ----
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-    cat("\n both \n")
     t0 <- Sys.time()
-    res <- ltic_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    res <- ltic_r(h_init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
     type <- "expo"
 
-  } else if (method == "surv") {
-    ## ICM (surv) ----
-    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
-    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
-    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-    cat("\n Go \n")
-    t0 <- Sys.time()
-    res <- ltic_s_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
-    time <- Sys.time() - t0
-
-  } else if (method == "turn_comb") {
+  } else if (method == "Turnbull-ICM") {
     ## Turnbull-ICM ----
     t0 <- Sys.time()
     res <- ltic_turn_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
-  } else if (method == "turnbull") {
+  } else if (method == "Turnbull") {
     ## Turnbull ----
     t0 <- Sys.time()
     res <- turnbull_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
-  } else if (method == "shen") {
+  } else if (method == "Shen") {
     ## Shen ----
     t0 <- Sys.time()
     res <- shen_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
-  } else if (method == "yu") {
+  } else if (method == "Yu") {
     ## Yu ----
     t0 <- Sys.time()
     res <- yu_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
-  } else if (method == "yu_comb") {
+  } else if (method == "Yu-ICM") {
     ## Yu-ICM ----
     t0 <- Sys.time()
     res <- ltic_yu_r(init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
 
-  } else if (method == "breslow") {
+  } else if (method == "Breslow") {
     ## Breslow ----
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
 
     t0 <- Sys.time()
-    res <- breslow_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    res <- breslow_r(lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
     type <- "expo"
 
-  } else if (method == "prodlim") {
+  } else if (method == "Product-Limit") {
     ## Prodlim ----
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
 
     t0 <- Sys.time()
-    res <- prodlim_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
+    res <- prodlim_r(h_init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
     type <- "prodlim"
 
-  } else if (method == "new") {
-    ## Experimental method using Laurent expansion ----
-    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
-    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
-    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-
-    t0 <- Sys.time()
-    res <- test_r(init, l, r, t, y_0, l_full, r_full, t_full, tol, max_it)
-    time <- Sys.time() - t0
-
-  } else if (method == "bres_comb") {
+  } else if (method == "Breslow-ICM") {
     ## Breslow-ICM ----
     l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
     r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
 
     t0 <- Sys.time()
-    res <- bres_comb_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    res <- bres_comb_r(lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
     time <- Sys.time() - t0
     type <- "expo"
 
-  } else if (method == "binomial") {
-    ## Binomial ----
-    l_full <- apply(alpha, 1, function(x) min(which(x == 1)) - 1)
-    r_full <- apply(alpha, 1, function(x) max(which(x == 1)))
-    t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
-    t0 <- Sys.time()
-    res <- binomial_r(init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
-    time <- Sys.time() - t0
-
-  } else if (method == "optim") {
+  } else if (method == "Quasi-Newton") {
     ## optim() ----
     t0 <- Sys.time()
     res <- optim_method(init, alpha, beta, tol)
     time <- Sys.time() - t0
     type <- "surv"
 
-  } else if (method == "icm") {
+  } else if (method == "ICM") {
     ## ICM (hazards) ----
     t0 <- Sys.time()
-    res <- icm_r(init, l, r, t, tol, max_it)
+    res <- icm_r(lambda_init, l, r, t, tol, max_it)
     time <- Sys.time() - t0
     type <- "expo"
   }
@@ -279,7 +265,8 @@ ltic_np <- function(left, right, trunc = NULL, tol = 1e-7,
     time = time,
     intervals = intervals,
     method = method,
-    type = type
+    type = type,
+    R_0 = y_0
   )
 
   class(output) <- "ltic"
