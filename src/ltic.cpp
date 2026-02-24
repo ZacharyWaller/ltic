@@ -19,8 +19,12 @@ List ltic_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["it"] = ltic_ob.it;
     out["lambda"] = ltic_ob.cum_lambda;
     out["tol"] = ltic_ob.tol;
-    //out["conv"] = ltic_ob.calc_conv();
-
+    out["conv"] = ltic_ob.calc_conv();
+    out["deriv"] = ltic_ob.deriv_1;
+    // For risk-set calculations
+    ltic_ob.calc_weight_sums();
+    out["n"] = ltic_ob.n_trans;
+    
     return out;
 
 }
@@ -34,6 +38,9 @@ void ltic::run() {
     newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
+    if (isnan(llike)) {
+      break;
+    }
     old_like = llike;
     it++;
     convert_to_surv();
@@ -53,16 +60,15 @@ double ltic::calc_like() {
 }
 
 // calculate convergence 
-std::vector<double> ltic::calc_conv() {
-  for (int i = 0; i < n_obs_full; i++) {
-    for (int j = trun_full[i]; j < n_obs; j++) {
-      deriv_1[j] -= 1 / (surv[trun_full[i]]);
-      if (j >= left_full[i] && j < right_full[i]) {
-        deriv_1[j] += 1 / (surv[left_full[i]] - surv[right_full[i]]);
-      }
-    }
+double ltic::calc_conv() {
+
+  calc_derivs();
+  double fenchel_1 = 0.;
+
+  for (int j = 0; j < n_int; j++) {
+    fenchel_1 += cum_lambda[j] * deriv_1[j];
   }
-  return deriv_1;
+  return fenchel_1;
 }
 
 
@@ -195,7 +201,10 @@ void ltic::half_steps() {
     double diff[n_weight];
 
     for (int j = 0; j < n_weight; j++) {
-      if (deriv_2[j + 1] >= 0.) deriv_2[j + 1] = -1e-9;
+      if (deriv_2[j + 1] >= 0.) {
+        //Rcpp::Rcout << "LM correction " << j + 1 << std::endl;
+        deriv_2[j + 1] = -1e-9;
+      }
       //   y[j] = cum_lambda[j + 1];
       //   w[j] = 1e9;
       // } else {
@@ -225,6 +234,7 @@ void ltic::half_steps() {
     inc_lik = new_lk >= temp_lk;
 
     while (tries < 5 && !inc_lik) {
+      //Rcpp::Rcout << "Half step!" << std::endl;
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {

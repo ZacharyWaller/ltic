@@ -19,6 +19,8 @@ List ltic_s_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["it"] = ltic_ob.it;
     out["surv"] = ltic_ob.surv;
     out["tol"] = ltic_ob.tol;
+    out["conv"] = ltic_ob.calc_conv();
+    out["deriv"] = ltic_ob.deriv_1;
 
     return out;
 
@@ -54,16 +56,15 @@ double ltic_s::calc_like() {
 }
 
 // calculate convergence 
-std::vector<double> ltic_s::calc_conv() {
-  for (int i = 0; i < n_obs_full; i++) {
-    for (int j = trun_full[i]; j < n_obs; j++) {
-      deriv_1[j] -= 1 / (surv[trun_full[i]]);
-      if (j >= left_full[i] && j < right_full[i]) {
-        deriv_1[j] += 1 / (surv[left_full[i]] - surv[right_full[i]]);
-      }
-    }
+double ltic_s::calc_conv() {
+
+  calc_derivs();
+  double fenchel_1 = 0.;
+  for (int j = 0; j < n_int; j++) {
+    fenchel_1 += dist[j] * deriv_1[j];
   }
-  return deriv_1;
+
+  return fenchel_1;
 }
 
 
@@ -193,6 +194,7 @@ void ltic_s::lm_steps() {
 
     ltic_s::icm_step();
     temp_llike = calc_like();
+    Rcpp::Rcout << llike << std::endl;
 
     // reset dist
     if (temp_llike < llike || temp_llike == R_NegInf) {
@@ -203,7 +205,7 @@ void ltic_s::lm_steps() {
     } else {
       lm_factor *= 2.;
     }
-    tries ++;
+    tries++;
   }
 }
 

@@ -37,6 +37,9 @@ void shen::run() {
       // check convergence
       llike = calc_like();
       conv = llike - old_like < tol && llike - old_like > -tol;
+      if (isnan(llike)) {
+        break;
+      }
       old_like = llike;
       it++;
 

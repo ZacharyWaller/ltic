@@ -18,6 +18,8 @@ List bres_comb_r(NumericVector lambda, IntegerVector l, IntegerVector r,
     out["llike"] = b_comb_ob.llike;
     out["it"] = b_comb_ob.it;
     out["lambda"] = b_comb_ob.cum_lambda;
+    out["conv"] = b_comb_ob.calc_conv();
+    out["deriv"] = b_comb_ob.deriv_1;
 
     return out;
 
@@ -30,6 +32,9 @@ void bres_comb::run() {
     em_algo();
     newton_algo();
     llike = calc_like();
+    if (isnan(llike)) {
+      break;
+    }
     conv = llike - old_like < tol && llike - old_like > -tol;
     old_like = llike;
     it++;
@@ -46,6 +51,20 @@ double bres_comb::calc_like() {
 
   return like;
 }
+
+
+// calculate convergence 
+double bres_comb::calc_conv() {
+
+  calc_derivs();
+  double fenchel_1 = 0.;
+
+  for (int j = 0; j < n_int; j++) {
+    fenchel_1 += cum_lambda[j] * deriv_1[j];
+  }
+  return fenchel_1;
+}
+
 
 // EM algorithm
 void bres_comb::em_algo() {
@@ -177,6 +196,7 @@ void bres_comb::half_steps() {
     inc_lik = new_lk >= temp_lk;
 
     while (tries < 5 && !inc_lik) {
+      Rcpp::Rcout << "Half step!" << std::endl;
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {

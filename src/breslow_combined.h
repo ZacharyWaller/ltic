@@ -43,6 +43,7 @@ class bres_comb{
     void calc_weight_sums();
     void newton_algo();
     void calc_derivs();
+    double calc_conv();
     void half_steps();
     void run();
 

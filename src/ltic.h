@@ -33,7 +33,7 @@ class ltic{
     double llike = R_NegInf;
 
     double calc_like();
-    std::vector<double> calc_conv();
+    double calc_conv();
     void em_algo();
     void calc_weight_sums();
     void convert_to_haz();
