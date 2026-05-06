@@ -1,17 +1,25 @@
 # Plot results -----------------------------------------------------------------
+#' Plot estimates from self-consistency algorithm
+#'
+#' @param estimate ltic object returned from \code{ltic_np}
+#' @param cond Index of inner-interval to condition survival on
+#' @param plot_type Should a new plot be made (\code{"new"}) or should the
+#' plot go over an existing one (\code{"over"})?
+#' @param ends Choose between step-changes at right (\code{"r"}) or left
+#' (\code{"l"}) end-points or inner-intervals.
+#' @param ... Other arguments supplied to plot function.
+#'
+#' @export
+#' @examples
+#' est <- ltic_np(mhcps$Ui, mhcps$Vi, mhcps$Ti)
+#' plot(est, cond = 1)
+#'
 plot.ltic <- function(
-  estimate, cond = NULL, plot_type = "new", ends = "r", ...
+  estimate, cond = NULL, plot_type = c("new", "over"), ends = c("r", "l"), ...
 ) {
-  #' Plot estimates from self-consistency algorithm
-  #'
-  #' @param estimate ltic object returned from \code{ltic_np}
-  #' @param cond index of inner-interval to condition survival on
-  #' @param ... Other arguments supplied to plot function.
-  #'
-  #' @export
-  #' @examples
-  #' data <- 
-  #'
+
+  plot_type <- match.arg(plot_type)
+  ends <- match.arg(ends)
 
   int <- estimate$intervals
   ii_left <- int$II$left

@@ -15,6 +15,7 @@
 #' @param open_L Open interval left end-point. See details.
 #' @param open_T Open interval from truncation time. See details.
 #' @param method Maximization method. See details.
+#' @param init Initial values for algorithm. Only works for PL method.
 #'
 #' @details
 #' If \code{trunc} is supplied then it must be supplied for all observations.
@@ -75,7 +76,7 @@ ltic_np <- function(
 
   # left small than right
   if (!all(left < right)) {
-    stop("Error: all left interval end must be smaller than the right interval 
+    stop("Error: all left interval end must be smaller than the right interval
          ends")
 
   }

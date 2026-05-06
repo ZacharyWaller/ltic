@@ -2,9 +2,7 @@
 % Please edit documentation in R/indicator_matrix.R
 \name{indicator_matrix}
 \alias{indicator_matrix}
-\title{Check which inner-intervals are subsets of other intervals. These other
-intervals could be observation intervals or truncation intervals, for
-example.}
+\title{Check which inner-intervals are subsets of other intervals}
 \usage{
 indicator_matrix(
   inner_int,
@@ -13,19 +11,22 @@ indicator_matrix(
   type = c("integer", "logical")
 )
 }
+\arguments{
+\item{inner_int}{Inner-intervals returned from \code{inner_intervals}}
+
+\item{interval}{A data-frame containing other intervals with end-points
+determined by columns \code{left} and \code{right}.}
+
+\item{delta}{A small number used to handle open interval end-points.}
+
+\item{type}{Should the returned matrix be populated with 1/0 or \code{TRUE}/
+\code{FALSE}}
+}
 \value{
 Matrix of \code{M} x \code{N} where \code{M} is the number of
 censored intervals and \code{N} is the number of inner intervals.
 1 where inner interval is subset of censored interval and 0 otherwise.
 }
 \description{
-Check which inner-intervals are subsets of other intervals. These other
-intervals could be observation intervals or truncation intervals, for
-example.
-}
-\examples{
-left <- c(0, 1, 2, 3, 4)
-right <- c(left + 1.5)
-turnbulls <- inner_intervals(left, right)
-indicator_matrix(turnbulls, left, right)
+Check which inner-intervals are subsets of other intervals
 }

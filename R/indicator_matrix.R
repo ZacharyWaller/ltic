@@ -1,21 +1,20 @@
 # Indicator matrix -------------------------------------------------------
+#' Check which inner-intervals are subsets of other intervals
+#'
+#' @param inner_int Inner-intervals returned from \code{inner_intervals}
+#' @param interval A data-frame containing other intervals with end-points
+#' determined by columns \code{left} and \code{right}.
+#' @param delta A small number used to handle open interval end-points.
+#' @param type Should the returned matrix be populated with 1/0 or \code{TRUE}/
+#' \code{FALSE}
+#'
+#' @returns Matrix of \code{M} x \code{N} where \code{M} is the number of
+#' censored intervals and \code{N} is the number of inner intervals.
+#' 1 where inner interval is subset of censored interval and 0 otherwise.
+#'
 indicator_matrix <- function(
   inner_int, interval, delta = NULL, type = c("integer", "logical")
 ) {
-  #' Check which inner-intervals are subsets of other intervals. These other
-  #' intervals could be observation intervals or truncation intervals, for
-  #' example.
-  #'
-  #' @return Matrix of \code{M} x \code{N} where \code{M} is the number of
-  #' censored intervals and \code{N} is the number of inner intervals.
-  #' 1 where inner interval is subset of censored interval and 0 otherwise.
-  #'
-  #' @examples
-  #' left <- c(0, 1, 2, 3, 4)
-  #' right <- c(left + 1.5)
-  #' turnbulls <- inner_intervals(left, right)
-  #' indicator_matrix(turnbulls, left, right)
-
   type <- match.arg(type)
 
   points <- inner_int

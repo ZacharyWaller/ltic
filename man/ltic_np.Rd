@@ -36,6 +36,8 @@ truncation.}
 \item{open_T}{Open interval from truncation time. See details.}
 
 \item{method}{Maximization method. See details.}
+
+\item{init}{Initial values for algorithm. Only works for PL method.}
 }
 \description{
 Calculate the non-parametric maximum-likelihood estimate of left-truncated

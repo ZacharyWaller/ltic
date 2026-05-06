@@ -1,7 +1,25 @@
+#' Calculate the Lai-Ying estimator
+#'
+#' @description
+#' Calculate a Lai-Ying survival curve from the NPMLE for left-truncated and
+#' interval censored data. This is useful when, due to truncation, there are
+#' very small risk-set sizes at early times which would usually result in
+#' underestimating the survival curve. This is experimental because Lai-Ying
+#' applied their method to left-truncated and right-censored data without
+#' interval-censoring.
+#'
+#'
+#' @param x Output from \code{ltic_np()} using the default (PL-ICM) method
+#' @param c Lai-Ying parameter
+#' @param alpha Lai-Ying parameter
+#'
+#' @references
+#' Lai, Tze Leung, and Zhiliang Ying. "Estimating a distribution function with truncated and censored data." The Annals of Statistics (1991): 417-442.
+#'
 lai_ying <- function(x, c = 1, alpha = 0.25) {
 
   if (x$method != "PL-ICM") {
-    stop("The Lai-Ying method is currently only supported when using the for 
+    stop("The Lai-Ying method is currently only supported when using the for
           estimates taken from the PL-ICM algorithm.")
   }
 
@@ -25,6 +43,44 @@ lai_ying <- function(x, c = 1, alpha = 0.25) {
 }
 
 # Lai-Ying plots ---------------------------------------------------------------
+#' Plot Lai-Ying survival curve and risk-sets
+#'
+#' @description
+#' Calculate and plot a Lai-Ying survival curve from the NPMLE for
+#' left-truncated and interval
+#' censored data. This is useful when, due to truncation, there are very small
+#' risk-set sizes at early times which would usually result in underestimating
+#' the survival curve. This is experimental because Lai-Ying applied their
+#' method to left-truncated and right-censored data without interval-censoring.
+#'
+#' @param x Output from \code{ltic_np()} using the default (PL-ICM) method
+#' @param c Lai-Ying parameter
+#' @param alpha Lai-Ying parameter
+#' @param ... Additional arguments for plotting
+#'
+#' @details
+#' The Lai-Ying estimator acts like the usual Kaplan-Meier estimator in the
+#' presence of left-truncation, but ignores any events at times when the
+#' risk-set is too small. Lai and Ying define this as a risk-set smaller than
+#' \eqn{c n^{\alpha}}. We use their suggested values of
+#' \eqn{c = 1} and \eqn{\alpha = 0.25} as defaults.
+#'
+#' For left-truncated and interval-censored data, we use the expected risk-set
+#' and event numbers and apply the Lai-Ying estimator as with left-truncated
+#' and right-censored data.
+#'
+#' Two plots are produced, one is a survival curve from the Lai-Ying estimator,
+#' the other is the expected risk-set size and expected number of events from
+#' the PL-ICM algorithm.
+#'
+#' @references
+#' Lai, Tze Leung, and Zhiliang Ying. "Estimating a distribution function with truncated and censored data." The Annals of Statistics (1991): 417-442.
+#'
+#' @export
+#'
+#' @examples
+#' est <- ltic_np(mhcps$Ui, mhcps$Vi, mhcps$Ti)
+#' lai_ying_plot(est)
 lai_ying_plot <- function(x, c = 1, alpha = 0.25, ...) {
 
   est <- lai_ying(x, c, alpha)
@@ -90,8 +146,3 @@ lai_ying_plot <- function(x, c = 1, alpha = 0.25, ...) {
   )
 
 }
-
-
-lai_ying_plot(fem_comb, xlim = c(65, 100))
-  
-  

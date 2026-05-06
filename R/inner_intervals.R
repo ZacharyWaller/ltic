@@ -1,25 +1,37 @@
 # Find the Inner intervals -----------------------------------------------------
+#' Find inner-intervals from observation times
+#'
+#' @param left Last assessment time before event
+#' @param right First assessment time after event
+#' @param trunc Truncation time
+#' @param open_L Are left assessment times treated as open?
+#' @param open_T Are truncation times treated as open?
+#'
+#' @details
+#' The NPMLE for left-truncated and interval-censored data only changes across
+#' a reduced number of inner-intervals (also known as Turnbull intervals or
+#' maximal cliques). This function calculates these inner-intervals as suggested
+#' by Yu (2022) to calculate the correct NPMLE. See Yu (2022) for details on
+#' open or closed end-points.
+#'
+#' @returns
+#' Data-frame containing left and right inner-intervals and
+#' open/closed status of each end-point.
+#'
+#' @export
+#'
+#' @references
+#' Yu, Qiqing. "The generalised MLE with truncated interval-censored data." Journal of Nonparametric Statistics 35.2 (2023): 266-282.
+#'
+#' @examples
+#' trunc <- c(0,   0, 0,   1,    1,   1)
+#' left <- c(-Inf, 1, 2,   -Inf, 1,   2)
+#' right <- c(1,   2, Inf, 1,    2, Inf)
+#' inner_intervals(left, right, trunc)
+#' ltic_np(left, right, trunc)
 inner_intervals <- function(
   left, right, trunc = NULL, open_L = TRUE, open_T = FALSE
 ) {
-  #' Find inner-intervals from observation times
-  #'
-  #' @param left Left end point of interval
-  #' @param right Right end point of interval
-  #' @param trunc Truncation time
-  #'
-  #' @return Data-frame containing left and right inner-intervals and
-  #' open/closed status of each end-point.
-  #'
-  #' @references Qiqing Yu "The generalised MLE with truncated interval-censored
-  #' data 2022"
-  #'
-  #' @examples
-  #' trunc <- c(0,   0, 0,   1,    1,   1)
-  #' left <- c(-Inf, 1, 2,   -Inf, 1,   2)
-  #' right <- c(1,   2, Inf, 1,    2, Inf)
-  #' inner_intervals(left, right, trunc)
-  #' turnbull_est(left, right, trunc)
 
   if (length(left) != length(right)) {
     stop("left and right should be the same length.")
