@@ -16,6 +16,7 @@ between_obs <- function(event_time, assess) {
   #' \code{Inf}
   #' will be returned along with the closest observation.
   #'
+  #' @export
   #' @examples
   #' between_obs(0.5, c(0, 1, 2, 3, 4)) # returns 0, 1
   #' between_obs(5, c(1, 2, 3, 4, 5, 6)) # returns 5, 5

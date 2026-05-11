@@ -21,6 +21,11 @@ underestimating the survival curve. This is experimental because Lai-Ying
 applied their method to left-truncated and right-censored data without
 interval-censoring.
 }
+\examples{
+est <- ltic_np(mhcps$Ui, mhcps$Vi, mhcps$Ti)
+ly_est <- lai_ying(est)
+plot(ly_est)
+}
 \references{
 Lai, Tze Leung, and Zhiliang Ying. "Estimating a distribution function with truncated and censored data." The Annals of Statistics (1991): 417-442.
 }

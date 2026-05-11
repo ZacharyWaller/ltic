@@ -4,16 +4,10 @@
 \alias{plot.ltic}
 \title{Plot estimates from self-consistency algorithm}
 \usage{
-\method{plot}{ltic}(
-  estimate,
-  cond = NULL,
-  plot_type = c("new", "over"),
-  ends = c("r", "l"),
-  ...
-)
+\method{plot}{ltic}(x, cond = NULL, plot_type = c("new", "over"), ends = c("r", "l"), ...)
 }
 \arguments{
-\item{estimate}{ltic object returned from \code{ltic_np}}
+\item{x}{ltic object returned from \code{ltic_np}}
 
 \item{cond}{Index of inner-interval to condition survival on}
 

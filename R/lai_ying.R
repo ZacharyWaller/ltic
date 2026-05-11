@@ -16,6 +16,12 @@
 #' @references
 #' Lai, Tze Leung, and Zhiliang Ying. "Estimating a distribution function with truncated and censored data." The Annals of Statistics (1991): 417-442.
 #'
+#' @export
+#'
+#' @examples
+#' est <- ltic_np(mhcps$Ui, mhcps$Vi, mhcps$Ti)
+#' ly_est <- lai_ying(est)
+#' plot(ly_est)
 lai_ying <- function(x, c = 1, alpha = 0.25) {
 
   if (x$method != "PL-ICM") {
@@ -33,13 +39,18 @@ lai_ying <- function(x, c = 1, alpha = 0.25) {
   h <- events / risk_set
   surv <- c(1, cumprod(1 - h))
 
-  list(
+  output <- list(
     surv = surv,
     events = events,
     risk_set = risk_set,
     n = n,
-    ly_remove = remove
+    ly_remove = remove,
+    intervals = x$intervals
   )
+
+  class(output) <- "lai_ying"
+
+  output
 }
 
 # Lai-Ying plots ---------------------------------------------------------------
@@ -53,7 +64,7 @@ lai_ying <- function(x, c = 1, alpha = 0.25) {
 #' the survival curve. This is experimental because Lai-Ying applied their
 #' method to left-truncated and right-censored data without interval-censoring.
 #'
-#' @param x Output from \code{ltic_np()} using the default (PL-ICM) method
+#' @param x Output from \code{lai_ying()}
 #' @param c Lai-Ying parameter
 #' @param alpha Lai-Ying parameter
 #' @param ... Additional arguments for plotting
@@ -80,12 +91,11 @@ lai_ying <- function(x, c = 1, alpha = 0.25) {
 #'
 #' @examples
 #' est <- ltic_np(mhcps$Ui, mhcps$Vi, mhcps$Ti)
-#' lai_ying_plot(est)
-lai_ying_plot <- function(x, c = 1, alpha = 0.25, ...) {
+#' ly_est <- lai_ying(est)
+#' plot(ly_est)
+plot.lai_ying <- function(x, c = 1, alpha = 0.25, ...) {
 
-  est <- lai_ying(x, c, alpha)
-
-  par(mfrow = c(2, 1))
+  #par(mfrow = c(2, 1))
 
   # survival plot ----
   ii_right <- x$intervals$II$right
@@ -93,39 +103,39 @@ lai_ying_plot <- function(x, c = 1, alpha = 0.25, ...) {
   x_plot <- r_time_points
   ord <- order(x_plot)
 
-  steps <- est$surv
+  steps <- x$surv
   y_plot <- rep(steps, each = 2)
   y_plot <- y_plot[ord]
   plot(
     x_plot, y_plot, type = "l", col = "red", lwd = 1.5,
     ylim = c(0, 1),
-    xlab = "Age", ylab = "Survival",
+    xlab = "Time", ylab = "Survival",
     ...
   )
 
   # risk-set plot ----
   # events
-  steps <- c(0, est$events)
+  steps <- c(0, x$events)
   y_plot <- rep(steps, each = 2)
   y_plot <- y_plot[ord]
-  max_y <- max(est$events, est$risk_set)
+  max_y <- max(x$events, x$risk_set)
   plot(
     x_plot, y_plot, type = "l", col = "red", lwd = 1.5,
     ylim = c(0, max_y),
-    xlab = "Age", ylab = "Expected Number",
+    xlab = "Time", ylab = "Expected Number",
     ...
   )
 
   # risk set
-  steps <- c(0, est$risk_set)
+  steps <- c(0, x$risk_set)
   y_plot <- rep(steps, each = 2)
   x_plot <- x_plot[ord]
   y_plot <- y_plot[ord]
   lines(x_plot, y_plot, type = "l", lwd = 1.5, lty = 3)
 
   # highlight low risk sets
-  ii_left <- x$intervals$II$left[est$ly_remove]
-  ii_right <- x$intervals$II$right[est$ly_remove]
+  ii_left <- x$intervals$II$left[x$ly_remove]
+  ii_right <- x$intervals$II$right[x$ly_remove]
   for (j in seq_along(ii_right)) {
     x_1 <- ii_left[j]
     x_2 <- ii_right[j]

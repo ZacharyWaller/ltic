@@ -1,7 +1,7 @@
 # Plot results -----------------------------------------------------------------
 #' Plot estimates from self-consistency algorithm
 #'
-#' @param estimate ltic object returned from \code{ltic_np}
+#' @param x ltic object returned from \code{ltic_np}
 #' @param cond Index of inner-interval to condition survival on
 #' @param plot_type Should a new plot be made (\code{"new"}) or should the
 #' plot go over an existing one (\code{"over"})?
@@ -15,48 +15,50 @@
 #' plot(est, cond = 1)
 #'
 plot.ltic <- function(
-  estimate, cond = NULL, plot_type = c("new", "over"), ends = c("r", "l"), ...
+  x, cond = NULL, plot_type = c("new", "over"), ends = c("r", "l"), ...
 ) {
+
+  est <- x
 
   plot_type <- match.arg(plot_type)
   ends <- match.arg(ends)
 
-  int <- estimate$intervals
+  int <- est$intervals
   ii_left <- int$II$left
   ii_right <- int$II$right
-  surv_type <- estimate$type
+  surv_type <- est$type
 
   max_x <- max(ii_right[ii_right != Inf])
   min_x <- min(int$Ti$left)
 
   if (!is.null(cond)) {
     if (surv_type == "expo") {
-      len <- length(estimate$res$lambda)
-      adj <- rep(estimate$res$lambda[cond + 1], len - cond - 1)
-      cond_lambda <- c(estimate$res$lambda[1:(cond + 1)], adj)
-      steps <- exp(-estimate$res$lambda + cond_lambda)
+      len <- length(est$res$lambda)
+      adj <- rep(est$res$lambda[cond + 1], len - cond - 1)
+      cond_lambda <- c(est$res$lambda[1:(cond + 1)], adj)
+      steps <- exp(-est$res$lambda + cond_lambda)
     } else if (surv_type == "prodlim") {
-      len <- length(estimate$res$lambda)
+      len <- length(est$res$lambda)
       adj <- rep(0, cond)
-      cond_lambda <- c(adj, estimate$res$lambda[(cond + 1):len])
+      cond_lambda <- c(adj, est$res$lambda[(cond + 1):len])
       steps <- c(1, cumprod(1 - cond_lambda))
     } else if (surv_type == "surv") {
-      steps_0 <- 1 - cumsum(estimate$res$s)
+      steps_0 <- 1 - cumsum(est$res$s)
       len <- length(steps_0)
       adj <- rep(1, cond)
-      fact <- 1 - sum(estimate$res$s[1:cond])
+      fact <- 1 - sum(est$res$s[1:cond])
       steps <- c(1, c(adj, steps_0[(cond + 1):len] / fact))
     }
 
   } else {
     if (surv_type == "expo") {
-      steps <- exp(-estimate$res$lambda)
+      steps <- exp(-est$res$lambda)
     } else if (surv_type == "prodlim") {
-      steps <- c(1, cumprod(1 - estimate$res$lambda))
+      steps <- c(1, cumprod(1 - est$res$lambda))
     } else if (surv_type == "surv") {
-      steps <- c(1, 1 - cumsum(estimate$res$s))
+      steps <- c(1, 1 - cumsum(est$res$s))
     } else {
-      steps <- estimate$res$surv
+      steps <- est$res$surv
     }
   }
 
