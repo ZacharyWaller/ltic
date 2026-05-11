@@ -216,7 +216,9 @@ ltic_np <- function(
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
 
     t0 <- Sys.time()
-    res <- breslow_r(lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    res <- breslow_r(
+      lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it
+    )
     time <- Sys.time() - t0
     type <- "expo"
 
@@ -238,7 +240,9 @@ ltic_np <- function(
     t_full <- apply(beta, 1, function(x) min(which(x == 1)) - 1)
 
     t0 <- Sys.time()
-    res <- bres_comb_r(lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it)
+    res <- bres_comb_r(
+      lambda_init, l, r, t, deriv_1_0, l_full, r_full, t_full, tol, max_it
+    )
     time <- Sys.time() - t0
     type <- "expo"
 
