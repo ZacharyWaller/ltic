@@ -10,3 +10,4 @@ todo.md
 _junk/
 data-raw/
 .vscode/
+^\.github$
