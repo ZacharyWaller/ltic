@@ -38,7 +38,7 @@ void ltic::run() {
     newton_algo();
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
-    if (isnan(llike)) {
+    if (std::isnan(llike)) {
       break;
     }
     old_like = llike;
@@ -54,7 +54,7 @@ double ltic::calc_like() {
       like += log( exp(-cum_lambda[left_full[i]] + cum_lambda[trun_full[i]]) - 
         exp(-cum_lambda[right_full[i]] + cum_lambda[trun_full[i]]));
   }
-  //if (isnan(like)) like = R_NegInf;
+  //if (std::isnan(like)) like = R_NegInf;
 
   return like;
 }
@@ -88,7 +88,7 @@ void ltic::em_algo() {
 
         if (h[j] >= 1.) {
           h[j] = 1. - 1e-10;
-        } else if (isnan(h[j])) {
+        } else if (std::isnan(h[j])) {
           h[j] = 0.;
         }
 

@@ -32,7 +32,7 @@ void bres_comb::run() {
     em_algo();
     newton_algo();
     llike = calc_like();
-    if (isnan(llike)) {
+    if (std::isnan(llike)) {
       break;
     }
     conv = llike - old_like < tol && llike - old_like > -tol;

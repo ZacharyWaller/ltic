@@ -39,7 +39,7 @@ void prodlim::run() {
 
         if (h[j] >= 1) {
           h[j] = 1 - 1e-10;
-        } else if (isnan(h[j])) {
+        } else if (std::isnan(h[j])) {
           h[j] = 0.;
         }
 
@@ -51,7 +51,7 @@ void prodlim::run() {
 
     llike = calc_like();
     conv = llike - old_like < tol && llike - old_like > -tol;
-    if (isnan(llike)) {
+    if (std::isnan(llike)) {
       break;
     }
     old_like = llike;
