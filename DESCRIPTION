@@ -4,7 +4,7 @@ Title: Non-parametric maximum-likelihood estimation for interval-censored
 Version: 0.0.0.9000
 Authors@R: 
     person("Zachary", "Waller", , "zachwaller1@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0000-0001-9148-1695"))
 Description: Fast methods for calculating the NPMLE for interval-censored and 
     left-truncated data.
 License: GPL (>= 3)
@@ -19,3 +19,5 @@ Imports:
     Rcpp,
     stats
 LazyData: TRUE
+Depends: 
+    R (>= 3.5)
