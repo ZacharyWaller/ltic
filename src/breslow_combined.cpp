@@ -16,7 +16,7 @@ List bres_comb_r(NumericVector lambda, IntegerVector l, IntegerVector r,
 
     List out;
     out["llike"] = b_comb_ob.llike;
-    out["it"] = b_comb_ob.it;
+    out["it"] = 11 * b_comb_ob.it;
     out["lambda"] = b_comb_ob.cum_lambda;
     out["conv"] = b_comb_ob.calc_conv();
     out["deriv"] = b_comb_ob.deriv_1;
@@ -196,7 +196,7 @@ void bres_comb::half_steps() {
     inc_lik = new_lk >= temp_lk;
 
     while (tries < 5 && !inc_lik) {
-      Rcpp::Rcout << "Half step!" << std::endl;
+      //Rcpp::Rcout << "Half step!" << std::endl;
       alpha *= 0.5;
 
       for (int j = 0; j < n_weight; j++) {

@@ -15,7 +15,7 @@ List ltic_turn_r(NumericVector lambda, IntegerVector l, IntegerVector r,
 
     List out;
     out["llike"] = ltic_ob.llike;
-    out["it"] = ltic_ob.it;
+    out["it"] = 11 * ltic_ob.it;
     out["lambda"] = ltic_ob.cum_lambda;
     out["tol"] = ltic_ob.tol;
     //out["conv"] = ltic_ob.calc_conv();

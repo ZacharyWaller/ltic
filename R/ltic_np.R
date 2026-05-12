@@ -92,7 +92,7 @@ ltic_np <- function(
   alpha <- indicator_matrix(intervals$II, intervals$Oi)
   beta <- indicator_matrix(intervals$II, intervals$Ti)
 
-  if (method %in% c("PL-ICM", "both", "Breslow", "Breslow-ICM")) {
+  if (method %in% c("PL-ICM", "Product-Limit", "Breslow", "Breslow-ICM")) {
     remove_rcens <- TRUE
   } else {
     remove_rcens <- FALSE

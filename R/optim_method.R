@@ -31,8 +31,8 @@ optim_method <- function(init, alpha, beta, tol = 1e-9) {
   list(
     surv = 1 - c(0, cumsum(opt$par / sum(opt$par))),
     s    = opt$par / sum(opt$par),
-    like = -opt$value,
-    numit = opt$counts
+    llike = -opt$value,
+    it = opt$counts[[1]]
   )
 
 }
