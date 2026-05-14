@@ -16,7 +16,7 @@ library(xtable)
 
 data <- results_100
 sim_name <- "sim_100"
- 
+
 # Extract and collate times ----------------------------------------------------
 t_results <- lapply(
   data,
@@ -78,80 +78,91 @@ like_results <- lapply(
 )
 # Plot helpers -----------------------------------------------------------------
 labels <- c(
-  "prod" = "Product limit",
-  "icm"  = "ICM",
-  "comb" = "Product limit + ICM",
-  "tu_c" = "Turnbull + ICM",
-  "yu_c" = "Yu  + ICM",
-  "br_c" = "Breslow + ICM",
   "bres" = "Breslow",
+  "br_c" = "Breslow-ICM",
+  "icm"  = "ICM",
+  "prod" = "PL",
+  "comb" = "PL-ICM",
   "opti" = "Quasi-Newton",
-  "yu"   = "Yu",
   "shen" = "Shen",
-  "turn" = "Turnbull"
+  "turn" = "Turnbull",
+  "tu_c" = "Turnbull-ICM",
+  "yu"   = "Yu",
+  "yu_c" = "Yu-ICM"
 )
+
+levels <- names(labels)
 
 # Plots ------------------------------------------------------------------------
 ## Times ----
 plot_time <- bind_rows(t_results) %>%
   mutate(run = row_number()) %>%
-  pivot_longer(c(prod, icm, comb, tu_c, yu_c, br_c, bres, opti, yu, shen, turn)) %>%
-  #pivot_longer(c(prod, comb, tu_c, yu_c, br_c, bres, yu, shen, turn)) %>%
+  pivot_longer(c(bres, br_c, icm, prod, comb, opti, shen, turn, tu_c, yu, yu_c)) %>%
   mutate(value = as.numeric(value)) %>%
   ggplot(aes(name, value)) +
   scale_y_log10(
-    name = "CPU Time (s)"
+    name = "CPU Time (s)", limits = c(0.003, 100)
   ) +
   scale_x_discrete(
-    name = "Method", labels = labels
+    name = "Method", labels = labels, limits = rev(levels)
   ) +
   geom_boxplot() +
-  theme_minimal()
+  theme_minimal() +
+  coord_flip()
+
+saveRDS(plot_time, paste0("outputs/", sim_name, "_plot.RDS"))
 
 ## Iterations ----
 plot_numit <- bind_rows(numit_results) %>%
   mutate(run = row_number()) %>%
-  pivot_longer(c(prod, icm, comb, tu_c, yu_c, br_c, bres, opti, yu, shen, turn)) %>%
-  #pivot_longer(c(prod, comb, tu_c, yu_c, br_c, bres, yu, shen, turn)) %>%
+  pivot_longer(c(bres, br_c, icm, prod, comb, opti, shen, turn, tu_c, yu, yu_c)) %>%
   ggplot(aes(name, value)) +
   scale_y_log10(
     name = "Iterations"
   ) +
   scale_x_discrete(
-    name = "Method", labels = labels
+    name = "Method", labels = labels, limits = rev(levels)
   ) +
   geom_boxplot() +
-  theme_minimal()
+  theme_minimal() +
+  coord_flip()
 
 # Tables -----------------------------------------------------------------------
 ## Likeilhood Ranks ----
-table_like_ranks <- bind_rows(like_results) %>%
+like_all <- bind_rows(like_results) %>%
+  mutate_all(
+    function(x) if_else(is.nan(x), -Inf, x)
+  )
+
+table_like_ranks <- like_all %>%
   rowwise() %>%
   mutate(
-    ranks = list(rank(-c(prod, icm, comb, tu_c, yu_c, br_c, bres, opti, yu, shen, turn)))
-    #ranks = list(rank(-c(prod, comb, tu_c, yu_c, br_c, bres, yu, shen, turn)))
+    ranks = list(rank(-c(bres, br_c, icm, prod, comb, opti, shen, turn, tu_c, yu, yu_c)))
   ) %>%
   select(ranks) %>%
   unnest_wider(ranks, names_sep = "_") %>%
   summarise(
-    across(everything(), 
-      function(x) formatC(mean(x), format = "f", digits = 1, big.mark = " ")
+    across(everything(),
+      function(x) formatC(median(x), format = "f", digits = 1, big.mark = " ")
     )
   ) %>%
   setNames(labels)
 
 ## Likelihood ----
-like_mean <- bind_rows(like_results) %>%
+like_mean <- like_all %>%
   summarise(
-    across(everything(), 
-      function(x) formatC(mean(x, na.rm = TRUE), format = "f", digits = 2, big.mark = " ")
+    across(everything(),
+      function(x) formatC(median(x), format = "f", digits = 2, big.mark = " ")
     )
   )
 
-like_sd <- bind_rows(like_results) %>%
+like_sd <- like_all %>%
+  mutate_all(
+    function(x) if_else(is.nan(x), -Inf, x)
+  ) %>%
   summarise(
-    across(everything(), 
-      function(x) formatC(sd(x, na.rm = TRUE), format = "f", digits = 2, big.mark = " ")
+    across(everything(),
+      function(x) formatC(IQR(x), format = "f", digits = 2, big.mark = " ")
     )
   )
 
@@ -159,53 +170,119 @@ like_sd <- bind_rows(like_results) %>%
 numit_mean <- bind_rows(numit_results) %>%
   summarise(
     across(everything(),
-      function(x) formatC(mean(x), format = "f", digits = 0, big.mark = " ")
+      function(x) formatC(median(x), format = "f", digits = 0, big.mark = " ")
     )
   )
 numit_sd <- bind_rows(numit_results) %>%
   summarise(
     across(everything(),
-      function(x) formatC(sd(x, na.rm = TRUE), format = "f", digits = 0, big.mark = " ") 
+      function(x) formatC(IQR(x), format = "f", digits = 0, big.mark = " ") 
     )
   )
 
 ## % Converged
-conv_per <- bind_rows(numit_results) %>%
-  mutate(across(everything(), function(x) x < 1e5 & !is.nan(x))) %>%
-  summarise(across(everything(), function(x) 100 * mean(x)))
+finite_like <- is.finite(as.matrix(like_all))
+identical(conv_per, test2)
+not_max_it <- bind_rows(numit_results) %>%
+  mutate(across(everything(), function(x) x < 1e5)) %>% 
+  as.matrix()
+
+conv_per <- (not_max_it * finite_like) %>% colSums()
 
 ## Times ----
 time_mean <- bind_rows(t_results) %>%
   summarise(
     across(everything(),
-      function(x) formatC(mean(x), format = "f", digits = 3, big.mark = " ")
+      function(x) formatC(median(x), format = "f", digits = 3, big.mark = " ")
     )
   )
 time_sd <- bind_rows(t_results) %>%
   summarise(
     across(everything(),
-      function(x) formatC(sd(x), format = "f", digits = 3, big.mark = " ")
+      function(x) formatC(IQR(x), format = "f", digits = 3, big.mark = " ")
     )
   )
 
+order <- levels
+
 res_table <- data.frame(
-  "Av. Rank" = t(table_like_ranks),
-  "log-likelihood" = paste0(like_mean, "(", like_sd, ")"),
-  "Iterations" = paste0(numit_mean, "(", numit_sd, ")"),
-  "CPU time (s)" = paste0(time_mean, "(", time_sd, ")"),
-  "% converged" = paste0(conv_per, "%"),
+  #"Av. Rank" = t(table_like_ranks),
+  "Method" = labels[order],
+  "log-likelihood" = paste0(like_mean[order], "(", like_sd[order], ")"),
+  "Iterations" = paste0(numit_mean[order], "(", numit_sd[order], ")"),
+  "CPU time (s)" = paste0(time_mean[order], "(", time_sd[order], ")"),
+  "% converged" = paste0(conv_per[order], "%"),
   check.names = FALSE
 ) %>%
-  mutate(sim = sim_name) %>%
-  rownames_to_column(var = "Method")
+  mutate(sim = sim_name)
 
 # Save -------------------------------------------------------------------------
 saveRDS(res_table, paste0("outputs/", sim_name, ".RDS"))
 
 # Collate tables together ------------------------------------------------------
-table_1 <- readRDS("outputs/sim_100.RDS")
-table_2 <- readRDS("outputs/sim_075.RDS")
-table_3 <- readRDS("outputs/sim_050.RDS")
+files <- list.files("outputs/sim", full.names = TRUE)
+methods <- c(
+  "prod", "icm", "comb", "tu_c", "yu_c", "br_c", "bres", "opti",
+  "yu", "shen", "turn"
+)
+
+for (file in files) {
+  cat(file, "\n")
+  data <- readRDS(file)
+  name <- gsub("(.*/)|(\\..*)", "", file)
+
+  # Extract all relevant information from each run
+  table <- lapply(
+    data,
+    function(run) {
+      lapply(
+        methods,
+        function(method) {
+          est <- run[[method]]
+          data.frame(
+            method = method,
+            time = as.numeric(est$time, units = "secs"),
+            it = est$res$it[[1]],
+            llike = est$res$llike
+          )
+        }
+      ) %>%
+        bind_rows()
+    }
+  )
+
+  # combine into a nice table
+  paper_table <- bind_rows(table) %>%
+    mutate(
+      converged = if_else(!is.nan(llike), 1, 0)
+    ) %>%
+    group_by(method) %>%
+    summarise(
+      time_med = mean(time), time_iqr = IQR(time),
+      it_med = median(it), it_iqr = IQR(it),
+      llike_med = median(llike, na.rm = TRUE),
+      llike_iqr = IQR(llike, na.rm = TRUE),
+      converged = mean(converged)
+    )
+
+  saveRDS(paper_table, paste0("outputs/sim/", name, "_table.RDS"))
+}
+
+## for paper ----
+paper_table_female <- bind_rows(table_female) %>%
+  filter(
+    !is.nan(llike)
+  ) %>%
+  mutate(
+    time = formatC(time, format = "f", digits = 3),
+    llike = formatC(llike, format = "f", digits = 2),
+    it = formatC(it, big.mark = ","),
+  ) %>%
+  select(
+    "Method" = method, "log-likelihood" = llike, "Iterations" = it,
+    "CPU time (s)" = time
+  )
+
 
 table_1 %>%
   arrange(
@@ -247,4 +324,20 @@ res_table %>%
   select(-sim) %>%
   xtable() %>%
   print(include.rownames = FALSE)
+
+# Plots ----
+plot_075 <- readRDS("outputs/sim_075_plot.RDS")
+plot_050 <- readRDS("outputs/sim_050_plot.RDS")
+
+library(cowplot)
+time_plot <- plot_grid(
+  plot_075, plot_050,
+  labels = c("a) 25% truncation", "b) 50% truncation"),
+  label_size = 10, hjust = -0.1
+)
+
+ggsave(
+  "outputs/time.pdf", time_plot, width = 10, height = 5
+)
+
 
