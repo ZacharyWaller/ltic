@@ -1,6 +1,6 @@
 # Load results -----------------------------------------------------------------
-fem_results <- readRDS("outputs/mhcps_female.RDS")
-mal_results <- readRDS("outputs/mhcps_male.RDS")
+fem_results <- readRDS("outputs/mhcps/mhcps_female.RDS")
+mal_results <- readRDS("outputs/mhcps/mhcps_male.RDS")
 
 library(dplyr)
 library(tidyr)
