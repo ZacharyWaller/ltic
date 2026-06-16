@@ -51,14 +51,17 @@ for (file in files) {
   # combine into a nice table
   paper_table <- bind_rows(table) %>%
     mutate(
-      converged = if_else(!is.nan(llike), 1, 0)
+      converged = if_else(!is.nan(llike), 1, 0),
+      llike = if_else(is.nan(llike), -Inf, llike)
     ) %>%
     group_by(method) %>%
     summarise(
-      time_med = median(time), time_iqr = IQR(time),
-      it_med = median(it), it_iqr = IQR(it),
-      llike_med = median(llike, na.rm = TRUE),
-      llike_iqr = IQR(llike, na.rm = TRUE),
+      time_med = median(time * converged),
+      time_iqr = IQR(time * converged),
+      it_med = median(it * converged),
+      it_iqr = IQR(it * converged),
+      llike_med = median(llike),
+      llike_iqr = IQR(llike),
       converged = mean(converged)
     )
 
@@ -68,7 +71,7 @@ for (file in files) {
 ## for paper ----
 files <- list.files("outputs/tables", full.names = TRUE)
 
-paper_table <- readRDS(files[[5]]) %>%
+paper_table <- readRDS(files[[3]]) %>%
   mutate(
     time_med = formatC(time_med, format = "f", digits = 3),
     time_iqr = formatC(time_iqr, format = "f", digits = 3),
