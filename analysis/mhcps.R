@@ -1,12 +1,16 @@
-library(dplyr)
-library(readr)
+library(ltic)
+
+# Make directory for results
+if (!dir.exists("outputs/mhcps")) {
+  dir.create("outputs/mhcps")
+}
 
 # MHCPS is included in this package
 data <- mhcps
 
 # Split into female and male
-data_fem <- data %>% filter(Zi == 0)
-data_mal <- data %>% filter(Zi == 1)
+data_fem <- data[data$Zi == 0, ]
+data_mal <- data[data$Zi == 1, ]
 
 max_it <- 1E6
 tol <- 1e-8
@@ -32,7 +36,7 @@ fem_results <- lapply(
 )
 names(fem_results) <- methods
 
-saveRDS(fem_results, "outputs/mhcps_female.RDS")
+saveRDS(fem_results, "outputs/mhcps/mhcps_female.RDS")
 
 # Male -------------------------------------------------------------------------
 ## Run estimates ----
@@ -51,4 +55,4 @@ mal_results <- lapply(
 )
 names(mal_results) <- methods
 
-saveRDS(mal_results, "outputs/mhcps_male.RDS")
+saveRDS(mal_results, "outputs/mhcps/mhcps_male.RDS")

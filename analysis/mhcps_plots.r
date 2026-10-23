@@ -1,12 +1,13 @@
 # Load results -----------------------------------------------------------------
-fem_results <- readRDS("outputs/mhcps/mhcps_female.RDS")
-mal_results <- readRDS("outputs/mhcps/mhcps_male.RDS")
+fem_results <- readRDS("outputs/mhcps_female.RDS")
+mal_results <- readRDS("outputs/mhcps_male.RDS")
 
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tibble)
 library(xtable)
+library(ltic)
 
 # Make tables ------------------------------------------------------------------
 methods <- c(
@@ -205,8 +206,8 @@ dev.off()
 
 ### Females ----
 int <- fem_results[["Turnbull"]]$intervals
-alpha <- indicator_matrix(int$II, int$Oi)
-beta <- indicator_matrix(int$II, int$Ti)
+alpha <- ltic:::indicator_matrix(int$II, int$Oi)
+beta <- ltic:::indicator_matrix(int$II, int$Ti)
 
 s <- fem_results[["Turnbull"]]$res$s
 
@@ -222,8 +223,8 @@ fem_aug <- scales::scientific(sum(mu_ij + nu_ij))
 
 ### Males ----
 int <- mal_results[["Turnbull"]]$intervals
-alpha <- indicator_matrix(int$II, int$Oi)
-beta <- indicator_matrix(int$II, int$Ti)
+alpha <- ltic:::indicator_matrix(int$II, int$Oi)
+beta <- ltic:::indicator_matrix(int$II, int$Ti)
 
 s <- mal_results[["Turnbull"]]$res$s
 

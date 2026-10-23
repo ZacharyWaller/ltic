@@ -1,6 +1,13 @@
+library(ltic)
+
 ## Simulation ------------------------------------------------------------------
 # Vary amount of truncation with interval censored data
-devtools::load_all()
+
+# Make directory for results
+if (!dir.exists("outputs/sim")) {
+  dir.create("outputs/sim")
+}
+
 
 # Simulate data ----------------------------------------------------------------
 simulate_data <- function(n, runif_max, seed) {
@@ -89,7 +96,7 @@ for (j in 1:length(n)) {
     )
 
     # save
-    file_name <- paste0("outputs/res_", n[j], "_", 100 * n_factor[k], ".RDS")
+    file_name <- paste0("outputs/sim/res_", n[j], "_", 100 * n_factor[k], ".RDS")
     saveRDS(results, file_name)
   }
 }

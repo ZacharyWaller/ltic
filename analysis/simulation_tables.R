@@ -4,15 +4,21 @@ library(tidyr)
 library(ggplot2)
 library(tibble)
 library(xtable)
+library(ltic)
+
+# Make directory for results
+if (!dir.exists("outputs/tables")) {
+  dir.create("outputs/tables")
+}
+
 
 # Collate tables together ------------------------------------------------------
-files <- list.files("outputs/res", full.names = TRUE)
+files <- list.files("outputs/sim", full.names = TRUE)
 
 methods <- c(
   "Breslow", "Product-Limit", "Shen", "Turnbull", "Yu",
   "Breslow-ICM", "PL-ICM", "Turnbull-ICM", "Yu-ICM", "ICM", "Quasi-Newton"
 )
-
 
 for (file in files) {
   cat(file, "\n")
@@ -71,26 +77,32 @@ for (file in files) {
 ## for paper ----
 files <- list.files("outputs/tables", full.names = TRUE)
 
-paper_table <- readRDS(files[[3]]) %>%
-  mutate(
-    time_med = formatC(time_med, format = "f", digits = 3),
-    time_iqr = formatC(time_iqr, format = "f", digits = 3),
-    llike_med = formatC(llike_med, format = "f", digits = 2),
-    llike_iqr = formatC(llike_iqr, format = "f", digits = 2),
-    it_med = formatC(it_med, big.mark = ",", format = "f", digits = 0),
-    it_iqr = formatC(it_iqr, big.mark = ",", format = "f", digits = 0),
-    converged = paste0(100 * converged, "%"),
-    # Combine
-    time = paste0(time_med, "(", time_iqr, ")"),
-    llike = paste0(llike_med, "(", llike_iqr, ")"),
-    it = paste0(it_med, "(", it_iqr, ")"),
-    method = factor(method, levels = methods)
-  ) %>%
-  arrange(method) %>%
-  select(
-    "Method" = method, "log-likelihood" = llike, "Iterations" = it,
-    "CPU time (s)" = time, "% converged" = converged
-  ) %>%
-  xtable() %>%
-  print(include.rownames = FALSE)
+for (file in files) {
+  paper_table <- readRDS(file) %>%
+    mutate(
+      time_med = formatC(time_med, format = "f", digits = 3),
+      time_iqr = formatC(time_iqr, format = "f", digits = 3),
+      llike_med = formatC(llike_med, format = "f", digits = 2),
+      llike_iqr = formatC(llike_iqr, format = "f", digits = 2),
+      it_med = formatC(it_med, big.mark = ",", format = "f", digits = 0),
+      it_iqr = formatC(it_iqr, big.mark = ",", format = "f", digits = 0),
+      converged = paste0(100 * converged, "%"),
+      # Combine
+      time = paste0(time_med, "(", time_iqr, ")"),
+      llike = paste0(llike_med, "(", llike_iqr, ")"),
+      it = paste0(it_med, "(", it_iqr, ")"),
+      method = factor(method, levels = methods)
+    ) %>%
+    arrange(method) %>%
+    select(
+      "Method" = method, "log-likelihood" = llike, "Iterations" = it,
+      "CPU time (s)" = time, "% converged" = converged
+    ) %>%
+    xtable() %>%
+    print(include.rownames = FALSE)
 
+    name <- paste0(tools::file_path_sans_ext(file), ".tex")
+    writeLines(paper_table, "my_table.tex")
+  
+
+}
