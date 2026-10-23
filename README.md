@@ -7,7 +7,7 @@ state and is being actively
 developed.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
 [![GitHub Repo
 stars](https://img.shields.io/github/stars/ZacharyWaller/ltic?style=social)](https://github.com/ZacharyWaller/ltic)
-[![Static Badge](https://img.shields.io/badge/preprint-research_square-blue)](https://doi.org/10.21203/rs.3.rs-5684468/v1)
+[![Static Badge](https://img.shields.io/badge/Paper-Statistics_and_Computing-blue)](https://doi.org/10.21203/rs.3.rs-5684468/v1)
 [![R-CMD-check](https://github.com/ZacharyWaller/ltic/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ZacharyWaller/ltic/actions/workflows/R-CMD-check.yaml)
 
 <!-- badges: end -->
@@ -17,7 +17,7 @@ stars](https://img.shields.io/github/stars/ZacharyWaller/ltic?style=social)](htt
 This package implements a fast product-limit algorithm to calculate the 
 non-parametric maximum likelihood estimator for LTIC data. This also includes 
 simulations and plots from the paper [A fast and stable NPMLE estimator for 
-left-truncated and interval-censored data](https://www.researchsquare.com/article/rs-5684468/v1).
+left-truncated and interval-censored data](https://doi.org/10.1007/s11222-026-10984-9).
 
 # Installation
 
@@ -31,7 +31,7 @@ devtools::install_github("ZacharyWaller/ltic")
 # MHCPS Data
 
 The above paper applies these methods to the Massachusetts Health Care Panel 
-dataset. This data is available from the supporting information from Pan and 
+dataset. This data is included in the package and was originally take from the supporting information of Pan and 
 Chappell (2002), [here](https://doi.org/10.1111/j.0006-341X.2002.00064.x).
 
 Some changes need to be made to that data to make it make sense - there are some 
